@@ -16,6 +16,7 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
   const [message, setMessage] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const [showResendOption, setShowResendOption] = useState(false)
+  const [requiresVerification, setRequiresVerification] = useState(false)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -45,12 +46,17 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
         // Handle different success scenarios
         if (data.alreadySubscribed) {
           setMessage('כבר נרשמת! תמשיך לקבל עדכונים מאל על.')
+          setRequiresVerification(false)
         } else if (data.emailFailed) {
           setMessage('ההרשמה נוצרה אך לא הצלחנו לשלוח מייל אימות.')
           setIsSuccess(false) // Don't show success state
           setShowResendOption(true) // Show resend option
+        } else if (data.requiresVerification) {
+          setMessage('נרשמת בהצלחה! אנא בדוק את המייל שלך ולחץ על קישור האימות כדי להתחיל לקבל עדכונים.')
+          setRequiresVerification(true)
         } else {
-          setMessage(data.message || 'נרשמת בהצלחה! אנא בדוק את המייל שלך כדי לאמת.')
+          setMessage(data.message || 'נרשמת בהצלחה!')
+          setRequiresVerification(false)
         }
         
         setEmail('')
@@ -87,6 +93,7 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
       if (response.ok) {
         if (data.alreadyVerified) {
           setIsSuccess(true)
+          setRequiresVerification(false)
           setMessage('המייל כבר מאומת! תקבל עדכונים.')
         } else {
           setMessage('מייל אימות נשלח שוב. בדוק את תיבת הדואר שלך.')
@@ -137,9 +144,20 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="text-center py-8"
               >
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-2xl font-medium text-gray-900 mb-2">הכל מוכן!</h3>
-                <p className="text-gray-600">נודיע לך כשיהיו עדכונים חדשים</p>
+                {requiresVerification ? (
+                  <>
+                    <Mail className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                    <h3 className="text-2xl font-medium text-gray-900 mb-2">כמעט מוכן!</h3>
+                    <p className="text-gray-600 mb-2">אנא אמת את המייל שלך כדי להתחיל לקבל עדכונים</p>
+                    <p className="text-sm text-gray-500">בדוק את תיבת הדואר שלך ולחץ על קישור האימות</p>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-2xl font-medium text-gray-900 mb-2">הכל מוכן!</h3>
+                    <p className="text-gray-600">נודיע לך כשיהיו עדכונים חדשים</p>
+                  </>
+                )}
               </motion.div>
             ) : (
               <motion.form
@@ -194,7 +212,7 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      מירשם אותך...
+                      רושם אותך...
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">

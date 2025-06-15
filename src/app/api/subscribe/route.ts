@@ -24,6 +24,20 @@ export async function POST(request: NextRequest) {
     // Create subscription
     const { subscriber, verificationToken } = await createSubscription({ email })
 
+    // If already verified (reactivated verified user), no email needed
+    if (!verificationToken) {
+      logInfo('Reactivated already verified subscription', {
+        email,
+        subscriberId: subscriber.id
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'You are already subscribed and will receive El Al updates.',
+        alreadySubscribed: true
+      })
+    }
+
     // Send verification email - handle failure gracefully
     try {
       await sendVerificationEmail({ email, verificationToken })

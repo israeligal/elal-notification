@@ -77,8 +77,8 @@ export async function performMonitoringCheck(): Promise<{
         await db.insert(notificationLogs).values({
           updateCheckId,
           subscriberEmails,
-          status: failed > 0 ? 'failed' : 'sent',
-          errorMessage: failed > 0 ? `${failed} emails failed to send` : null
+          status: sent > 0 ? 'sent' : 'failed',
+          errorMessage: failed > 0 ? `${failed} out of ${activeSubscribers.length} emails failed to send` : null
         })
 
         logInfo('Monitoring check completed with notifications', {

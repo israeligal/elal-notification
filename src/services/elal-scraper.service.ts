@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer'
-import crypto from 'crypto-js'
+import crypto from 'crypto'
 import { logInfo, logError } from '@/lib/utils/logger'
 import type { ScrapedContent } from '@/types/notification.type'
 
@@ -45,7 +45,7 @@ export async function scrapeElAlUpdates({
     })
 
     // Wait for content to load
-    await page.waitForTimeout(3000)
+    await new Promise(resolve => setTimeout(resolve, 3000))
 
     // Extract content - adjust selectors based on actual page structure
     const updates = await page.evaluate(() => {
@@ -67,7 +67,7 @@ export async function scrapeElAlUpdates({
           results.push({
             title: titleEl.textContent?.trim() || '',
             content: contentEl.textContent?.trim() || '',
-            publishDate: dateEl?.textContent?.trim() || dateEl?.getAttribute('datetime'),
+            publishDate: dateEl?.textContent?.trim() || dateEl?.getAttribute('datetime') || undefined,
             url: linkEl?.href
           })
         }
@@ -95,7 +95,7 @@ export function generateContentHash(content: ScrapedContent[]): string {
     content: item.content.substring(0, 200) // First 200 chars to avoid minor changes
   })))
   
-  return crypto.SHA256(contentString).toString()
+  return crypto.createHash('sha256').update(contentString).digest('hex')
 }
 
 export function detectChanges({ 
