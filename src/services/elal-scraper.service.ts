@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer'
+import { chromium } from 'playwright'
 import crypto from 'crypto'
 import { logInfo, logError } from '@/lib/utils/logger'
 import type { ScrapedContent } from '@/types/notification.type'
@@ -17,35 +17,37 @@ export async function scrapeElAlUpdates({
   let browser
   
   try {
-    logInfo('Starting El Al updates scraping', { url: ELAL_URL })
+    logInfo('Starting El Al updates scraping with Playwright', { url: ELAL_URL })
     
-    browser = await puppeteer.launch({
+    // Launch Playwright browser - works great on Vercel!
+    browser = await chromium.launch({
       headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-web-security',
-        '--lang=he'
       ]
     })
 
-    const page = await browser.newPage()
-    
-    // Set Hebrew language and user agent
-    await page.setUserAgent(userAgent)
-    await page.setExtraHTTPHeaders({
-      'Accept-Language': 'he-IL,he;q=0.9,en;q=0.8'
+    const context = await browser.newContext({
+      userAgent,
+      locale: 'he-IL',
+      extraHTTPHeaders: {
+        'Accept-Language': 'he-IL,he;q=0.9,en;q=0.8'
+      }
     })
+
+    const page = await context.newPage()
 
     logInfo('Navigating to El Al page')
     await page.goto(ELAL_URL, { 
-      waitUntil: 'networkidle2',
+      waitUntil: 'networkidle',
       timeout 
     })
 
     // Wait for content to load
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    await page.waitForTimeout(3000)
 
     // Extract content - adjust selectors based on actual page structure
     const updates = await page.evaluate(() => {
@@ -76,7 +78,7 @@ export async function scrapeElAlUpdates({
       return results
     })
 
-    logInfo('Successfully scraped El Al updates', { count: updates.length })
+    logInfo('Successfully scraped El Al updates with Playwright', { count: updates.length })
     return updates
 
   } catch (error) {
