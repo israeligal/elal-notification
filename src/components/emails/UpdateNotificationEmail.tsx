@@ -131,17 +131,9 @@ export function UpdateNotificationEmail({
               fontSize: '12px',
               color: '#888',
               textAlign: 'center',
-              marginBottom: '10px'
-            }}>
-              עדכון נשלח בתאריך: {timestamp.toLocaleDateString('he-IL')} {timestamp.toLocaleTimeString('he-IL')}
-            </Text>
-            <Text style={{ 
-              fontSize: '12px',
-              color: '#888',
-              textAlign: 'center',
               marginBottom: '20px'
             }}>
-              Update sent on: {timestamp.toLocaleDateString('en-US')} {timestamp.toLocaleTimeString('en-US')}
+              עדכון נשלח בתאריך: {timestamp.toLocaleDateString('he-IL')} {timestamp.toLocaleTimeString('he-IL')}
             </Text>
             
             <Text style={{ 
@@ -150,23 +142,23 @@ export function UpdateNotificationEmail({
               textAlign: 'center',
               marginBottom: '15px'
             }}>
-              לא מעוניין לקבל עדכונים? | Don&apos;t want to receive updates?
+              לא מעוניין לקבל עדכונים?
             </Text>
             
             <div style={{ textAlign: 'center' }}>
-              <Button 
-                href={unsubscribeUrl}
-                style={{
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '4px',
-                  textDecoration: 'none',
-                  fontSize: '12px'
-                }}
-              >
-                ביטול הרשמה | Unsubscribe
-              </Button>
+                              <Button 
+                  href={unsubscribeUrl}
+                  style={{
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    textDecoration: 'none',
+                    fontSize: '12px'
+                  }}
+                >
+                  ביטול הרשמה
+                </Button>
             </div>
           </Section>
         </Container>
