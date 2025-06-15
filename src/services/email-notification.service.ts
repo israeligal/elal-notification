@@ -9,6 +9,10 @@ if (!process.env.RESEND_API_KEY) {
   throw new Error('RESEND_API_KEY environment variable is required')
 }
 
+if (!process.env.APP_URL) {
+  throw new Error('APP_URL environment variable is required')
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@elal-updates.xyz'
 
@@ -46,9 +50,10 @@ export async function sendUpdateNotifications({
     for (const batch of batches) {
       const emailPromises = batch.map(async (subscriber) => {
         try {
-          const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`
+          const unsubscribeToken = subscriber.verifiedAt ? '' : `&token=${subscriber.verificationToken || ''}`
+          const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(subscriber.email)}${unsubscribeToken}`
           
-          const emailHtml = render(UpdateNotificationEmail({
+          const emailHtml = await render(UpdateNotificationEmail({
             updates,
             unsubscribeUrl,
             timestamp: new Date()
@@ -101,7 +106,7 @@ export async function sendVerificationEmail({
 
     const verificationUrl = `${process.env.APP_URL}/api/subscription/verify?email=${encodeURIComponent(email)}&token=${verificationToken}`
     
-    const emailHtml = render(VerificationEmail({
+    const emailHtml = await render(VerificationEmail({
       email,
       verificationUrl
     }))
