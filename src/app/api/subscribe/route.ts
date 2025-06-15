@@ -3,6 +3,7 @@ import { createSubscription } from '@/services/subscription.service'
 import { sendVerificationEmail } from '@/services/email-notification.service'
 import { subscribeRequestSchema } from '@/types/notification.type'
 import { logInfo, logError } from '@/lib/utils/logger'
+import { trackEvent } from '@/lib/utils/analytics'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +22,16 @@ export async function POST(request: NextRequest) {
 
     logInfo('Processing subscription request', { email })
 
+    // Track subscription attempt
+    await trackEvent({
+      distinctId: email,
+      event: 'subscription_started',
+      properties: {
+        email_domain: email.split('@')[1],
+        timestamp: new Date().toISOString(),
+      }
+    })
+
     // Create subscription
     const { subscriber, verificationToken } = await createSubscription({ email })
 
@@ -29,6 +40,17 @@ export async function POST(request: NextRequest) {
       logInfo('Reactivated already verified subscription', {
         email,
         subscriberId: subscriber.id
+      })
+
+      // Track subscription reactivation
+      await trackEvent({
+        distinctId: email,
+        event: 'subscription_reactivated',
+        properties: {
+          subscriber_id: subscriber.id,
+          email_domain: email.split('@')[1],
+          timestamp: new Date().toISOString(),
+        }
       })
 
       return NextResponse.json({
@@ -47,6 +69,18 @@ export async function POST(request: NextRequest) {
         subscriberId: subscriber.id 
       })
 
+      // Track successful subscription creation with verification email sent
+      await trackEvent({
+        distinctId: email,
+        event: 'subscription_created',
+        properties: {
+          subscriber_id: subscriber.id,
+          email_domain: email.split('@')[1],
+          verification_email_sent: true,
+          timestamp: new Date().toISOString(),
+        }
+      })
+
       return NextResponse.json({
         success: true,
         message: 'Subscription created. Please check your email to verify.',
@@ -55,6 +89,19 @@ export async function POST(request: NextRequest) {
 
     } catch (emailError) {
       logError('Failed to send verification email', emailError as Error, { email })
+      
+      // Track subscription creation with failed verification email
+      await trackEvent({
+        distinctId: email,
+        event: 'subscription_created',
+        properties: {
+          subscriber_id: subscriber.id,
+          email_domain: email.split('@')[1],
+          verification_email_sent: false,
+          verification_email_error: (emailError as Error).message,
+          timestamp: new Date().toISOString(),
+        }
+      })
       
       // Still return success but with different message
       return NextResponse.json({
@@ -67,6 +114,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logError('Failed to process subscription', error as Error)
+    
+    // Track subscription failure
+    await trackEvent({
+      distinctId: 'unknown',
+      event: 'subscription_failed',
+      properties: {
+        error_message: (error as Error).message,
+        timestamp: new Date().toISOString(),
+      }
+    })
     
     if ((error as Error).message.includes('already subscribed')) {
       return NextResponse.json({
