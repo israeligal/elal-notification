@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check El Al Updates
         run: |
-          curl -X GET "${{ secrets.APP_URL }}/api/cron/check-updates" \
+          curl -X GET https://elal-notification.vercel.app/api/cron/check-updates" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             --fail-with-body \
