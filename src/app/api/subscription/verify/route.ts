@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifySubscription } from '@/services/subscription.service'
+import { sendConfirmationEmail } from '@/services/email-notification.service'
 import { logInfo, logError } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
@@ -20,6 +21,15 @@ export async function GET(request: NextRequest) {
     await verifySubscription({ email, token })
 
     logInfo('Email verification successful', { email })
+
+    // Send confirmation email after successful verification
+    try {
+      await sendConfirmationEmail({ email })
+      logInfo('Confirmation email sent after verification', { email })
+    } catch (emailError) {
+      // Log error but don't fail the verification process
+      logError('Failed to send confirmation email after verification', emailError as Error, { email })
+    }
 
     // Redirect to success page
     return NextResponse.redirect(new URL('/verification-success', request.url))

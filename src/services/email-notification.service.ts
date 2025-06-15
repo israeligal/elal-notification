@@ -3,6 +3,7 @@ import { render } from '@react-email/render'
 import { logInfo, logError } from '@/lib/utils/logger'
 import { UpdateNotificationEmail } from '@/components/emails/UpdateNotificationEmail'
 import { VerificationEmail } from '@/components/emails/VerificationEmail'
+import { ConfirmationEmail } from '@/components/emails/ConfirmationEmail'
 import type { ScrapedContent, Subscriber } from '@/types/notification.type'
 
 if (!process.env.RESEND_API_KEY) {
@@ -122,6 +123,36 @@ export async function sendVerificationEmail({
 
   } catch (error) {
     logError('Failed to send verification email', error as Error, { email })
+    throw error
+  }
+}
+
+export async function sendConfirmationEmail({ 
+  email 
+}: { 
+  email: string 
+}): Promise<void> {
+  try {
+    logInfo('Sending confirmation email', { email })
+
+    const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`
+    
+    const emailHtml = await render(ConfirmationEmail({
+      email,
+      unsubscribeUrl
+    }))
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'הרשמה הושלמה בהצלחה! | Registration Complete - El Al Updates',
+      html: emailHtml,
+    })
+
+    logInfo('Confirmation email sent successfully', { email })
+
+  } catch (error) {
+    logError('Failed to send confirmation email', error as Error, { email })
     throw error
   }
 }
