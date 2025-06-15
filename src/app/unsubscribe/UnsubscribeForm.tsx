@@ -82,17 +82,11 @@ export function UnsubscribeForm() {
               </p>
             </div>
 
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-3">
-                Unsubscribed Successfully
-              </h2>
-            </div>
-
             <Link 
               href="/"
               className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-center"
             >
-              חזור לעמוד הבית | Back to Home
+              חזור לעמוד הבית 
             </Link>
           </div>
         </div>
@@ -120,21 +114,12 @@ export function UnsubscribeForm() {
                 מצטערים לראות אותך עוזב. הזן את המייל שלך לביטול המנוי.
               </p>
             </div>
-
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Unsubscribe from El Al Updates
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Sorry to see you go. Enter your email to unsubscribe.
-              </p>
-            </div>
           </div>
 
           <form onSubmit={handleUnsubscribe} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                <span dir="rtl">כתובת מייל | Email Address</span>
+                <span dir="rtl">כתובת מייל</span>
               </label>
               <input
                 type="email"
@@ -165,10 +150,10 @@ export function UnsubscribeForm() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  מבטל מנוי... | Unsubscribing...
+                  מבטל מנוי... 
                 </span>
               ) : (
-                'בטל מנוי | Unsubscribe'
+                'בטל מנוי'
               )}
             </button>
           </form>
@@ -177,7 +162,7 @@ export function UnsubscribeForm() {
             <p className="text-sm text-gray-500">
               <span dir="rtl">רוצה לחזור? </span>
               <Link href="/" className="text-blue-600 hover:text-blue-700">
-                <span dir="rtl">חזור לעמוד הבית</span> | Back to Home
+                <span dir="rtl">חזור לעמוד הבית</span>
               </Link>
             </p>
           </div>
