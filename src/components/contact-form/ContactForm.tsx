@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useActionState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import clsx from 'clsx'
 
 import { submitContactForm } from '@/lib/actions/contact.actions'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -103,14 +104,14 @@ export function ContactForm() {
     <div className="w-full max-w-2xl mx-auto p-6 bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-0" dir="rtl">
       <h2 className="text-3xl font-light text-center mb-8 text-gray-900">צור קשר</h2>
       
-      <Tabs defaultValue="contact" value={formType} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100">
-          <TabsTrigger value="contact" className="cursor-pointer">צור קשר</TabsTrigger>
-          <TabsTrigger value="feature" className="cursor-pointer">חסרה לי פונקציה באתר</TabsTrigger>
+      <Tabs defaultValue="contact" value={formType} onValueChange={handleTabChange} className="w-full flex flex-col items-center">
+        <TabsList className="grid grid-cols-2 mb-8 bg-gray-100 gap-2 w-min">
+          <TabsTrigger value="contact" className={clsx("cursor-pointer", formType === 'contact' && "bg-white")}>צור קשר</TabsTrigger>
+          <TabsTrigger value="feature" className={clsx("cursor-pointer", formType === 'feature' && "bg-white")}>חסרה לי פונקציה באתר</TabsTrigger>
         </TabsList>
         
         {/* Use RHF's handleSubmit to trigger client validation first */}
-        <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate> 
+        <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full" noValidate> 
           {/* Hidden input registered with RHF */}
           <input type="hidden" {...register('formType')} />
           

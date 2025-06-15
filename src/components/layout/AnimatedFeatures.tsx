@@ -6,7 +6,7 @@ import { Globe, Mail, Clock } from 'lucide-react'
 export function AnimatedFeatures() {
   return (
     <motion.div 
-      className="max-w-4xl mx-auto mt-16"
+      className="max-w-4xl mx-auto mt-16 mb-16"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.4 }}
