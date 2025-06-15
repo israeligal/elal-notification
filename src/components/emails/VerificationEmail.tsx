@@ -140,7 +140,7 @@ export function VerificationEmail({
               lineHeight: '1.4',
               marginBottom: '20px'
             }}>
-              <strong>What you'll receive:</strong><br />
+              <strong>What you&apos;ll receive:</strong><br />
               • Immediate updates about changes on the El Al website<br />
               • Notifications about flights, schedules, and services<br />
               • Important information for passengers
