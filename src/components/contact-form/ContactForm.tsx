@@ -27,9 +27,68 @@ const FEATURE_TEXT = `שלום לצוות עדכוני אל על,
 
 `
 
+// Rate limiting constants
+const RATE_LIMIT_KEY = 'contact_form_submissions'
+const MAX_SUBMISSIONS = 2
+const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 minute
+
+// Rate limiting utility functions
+const getRateLimitData = (): number[] => {
+  try {
+    const data = localStorage.getItem(RATE_LIMIT_KEY)
+    return data ? JSON.parse(data) : []
+  } catch {
+    return []
+  }
+}
+
+const setRateLimitData = (timestamps: number[]): void => {
+  try {
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(timestamps))
+  } catch {
+    // Silent fail if localStorage is not available
+  }
+}
+
+const checkRateLimit = (): { allowed: boolean; timeUntilReset?: number } => {
+  const now = Date.now()
+  const submissions = getRateLimitData()
+  
+  // Filter out submissions older than the rate limit window
+  const recentSubmissions = submissions.filter(timestamp => 
+    now - timestamp < RATE_LIMIT_WINDOW_MS
+  )
+  
+  // Update localStorage with cleaned data
+  setRateLimitData(recentSubmissions)
+  
+  if (recentSubmissions.length >= MAX_SUBMISSIONS) {
+    // Calculate time until the oldest submission expires
+    const oldestSubmission = Math.min(...recentSubmissions)
+    const timeUntilReset = RATE_LIMIT_WINDOW_MS - (now - oldestSubmission)
+    
+    return { allowed: false, timeUntilReset }
+  }
+  
+  return { allowed: true }
+}
+
+const recordSubmission = (): void => {
+  const submissions = getRateLimitData()
+  const now = Date.now()
+  
+  // Add current submission and clean old ones
+  const updatedSubmissions = [...submissions, now].filter(timestamp => 
+    now - timestamp < RATE_LIMIT_WINDOW_MS
+  )
+  
+  setRateLimitData(updatedSubmissions)
+}
+
 export function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null)
   const [formType, setFormType] = useState<'contact' | 'feature'>('contact')
+  const [rateLimitError, setRateLimitError] = useState<string>('')
 
   // useActionState for server interaction
   const initialState: ContactFormState = { success: false, message: '' }
@@ -55,8 +114,6 @@ export function ContactForm() {
     },
   })
 
-
-
   // Effect to update message text and formType in react-hook-form state when tab changes
   useEffect(() => {
     const newText = formType === 'contact' ? CONTACT_TEXT : FEATURE_TEXT
@@ -74,6 +131,8 @@ export function ContactForm() {
         message: formType === 'contact' ? CONTACT_TEXT : FEATURE_TEXT,
         formType: formType,
       }) 
+      // Clear any rate limit error when successful
+      setRateLimitError('')
       // No need to manually clear state from useActionState, it's designed to be read-only after action
     } else if (state.message && !state.success && (state.errors?._form || (!state.errors?.email && !state.errors?.message && !state.errors?.name))) { // Show error toast only if there's a general message OR a _form error
       // Avoid showing toast for field-specific errors handled by RHF below
@@ -84,10 +143,29 @@ export function ContactForm() {
 
   const handleTabChange = (value: string) => {
     setFormType(value as 'contact' | 'feature')
+    // Clear rate limit error when switching tabs
+    setRateLimitError('')
   }
 
   // Wrapper function to handle client validation before triggering server action
   const onSubmit = (data: ContactFormData) => {
+    // Check rate limit first
+    const rateLimitCheck = checkRateLimit()
+    
+    if (!rateLimitCheck.allowed) {
+      const timeUntilResetSeconds = Math.ceil((rateLimitCheck.timeUntilReset || 0) / 1000)
+      const errorMessage = `יותר מדי נסיונות שליחה. אנא המתן ${timeUntilResetSeconds} שניות לפני הנסיון הבא.`
+      setRateLimitError(errorMessage)
+      toast.error(errorMessage)
+      return
+    }
+
+    // Clear any previous rate limit error
+    setRateLimitError('')
+    
+    // Record this submission attempt
+    recordSubmission()
+    
     const formData = new FormData()
     formData.append('name', data.name || '')
     formData.append('email', data.email || '')
@@ -189,6 +267,13 @@ export function ContactForm() {
             )}
           </div>
           
+          {/* Display rate limit error */}
+          {rateLimitError && (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4">
+              <p>{rateLimitError}</p>
+            </div>
+          )}
+          
           {/* Display general form errors from the server action state */}
           {state.errors?._form && (
             <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4">
@@ -208,7 +293,7 @@ export function ContactForm() {
           <Button 
             type="submit" 
             className="w-full cursor-pointer bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white h-12 rounded-xl font-medium shadow-lg" 
-            disabled={isPending || isSubmitting} // Disable if RHF is submitting OR the action is pending
+            disabled={isPending || isSubmitting || !!rateLimitError} // Disable if RHF is submitting OR the action is pending OR rate limited
           > 
             {isPending ? 'שולח...' : 'שלח הודעה'} 
           </Button>
