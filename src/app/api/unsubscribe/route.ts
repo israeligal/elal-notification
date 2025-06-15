@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { removeSubscription } from '@/services/subscription.service'
 import { unsubscribeRequestSchema } from '@/types/notification.type'
 import { logInfo, logError } from '@/lib/utils/logger'
+import { trackEvent } from '@/lib/utils/analytics'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +25,17 @@ export async function POST(request: NextRequest) {
 
     logInfo('Unsubscribe successful', { email })
 
+    // Track successful unsubscribe
+    await trackEvent({
+      distinctId: email,
+      event: 'unsubscribed',
+      properties: {
+        email_domain: email.split('@')[1],
+        had_token: !!token,
+        timestamp: new Date().toISOString(),
+      }
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Successfully unsubscribed from El Al updates'
@@ -31,6 +43,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logError('Unsubscribe failed', error as Error)
+    
+    // Track unsubscribe failure
+    await trackEvent({
+      distinctId: 'unknown',
+      event: 'unsubscribe_failed',
+      properties: {
+        error_message: (error as Error).message,
+        timestamp: new Date().toISOString(),
+      }
+    })
     
     if ((error as Error).message.includes('not found')) {
       return NextResponse.json(
@@ -63,6 +85,18 @@ export async function GET(request: NextRequest) {
     if (!email) {
       return NextResponse.redirect(new URL('/unsubscribe-error', request.url))
     }
+
+    // Track unsubscribe link click
+    await trackEvent({
+      distinctId: email,
+      event: 'unsubscribe_link_clicked',
+      properties: {
+        email_domain: email.split('@')[1],
+        had_token: !!token,
+        source: 'email_link',
+        timestamp: new Date().toISOString(),
+      }
+    })
 
     // Build redirect URL with both email and token (if provided)
     const unsubscribePageUrl = new URL('/unsubscribe', request.url)

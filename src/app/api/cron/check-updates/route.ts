@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { performMonitoringCheck } from '@/services/monitoring.service'
 import { logInfo, logError } from '@/lib/utils/logger'
+import { trackEvent } from '@/lib/utils/analytics'
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,12 +32,34 @@ export async function GET(request: NextRequest) {
     if (result.success) {
       logInfo('Scheduled monitoring check completed successfully', result)
       
+      // Track successful monitoring check
+      await trackEvent({
+        distinctId: 'system',
+        event: 'monitoring_check_success',
+        properties: {
+          has_changes: result.hasUpdates || false,
+          changes_count: result.updateCount || 0,
+          notifications_sent: result.notificationsSent || 0,
+          timestamp: new Date().toISOString(),
+        }
+      })
+      
       return NextResponse.json({
         timestamp: new Date().toISOString(),
         ...result
       })
     } else {
       logError('Scheduled monitoring check failed', new Error(result.error))
+      
+      // Track failed monitoring check
+      await trackEvent({
+        distinctId: 'system',
+        event: 'monitoring_check_failed',
+        properties: {
+          error_message: result.error,
+          timestamp: new Date().toISOString(),
+        }
+      })
       
       return NextResponse.json({
         success: false,
@@ -47,6 +70,16 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logError('Cron job endpoint failed', error as Error)
+    
+    // Track cron job endpoint failure
+    await trackEvent({
+      distinctId: 'system',
+      event: 'cron_job_failed',
+      properties: {
+        error_message: (error as Error).message,
+        timestamp: new Date().toISOString(),
+      }
+    })
     
     return NextResponse.json({
       success: false,

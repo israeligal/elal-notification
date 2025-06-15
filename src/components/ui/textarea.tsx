@@ -1,6 +1,10 @@
 import { forwardRef } from 'react'
 
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  className?: string
+  ref?: React.RefObject<HTMLTextAreaElement>
+  props?: React.TextareaHTMLAttributes<HTMLTextAreaElement>
+}
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, ...props }, ref) => {
