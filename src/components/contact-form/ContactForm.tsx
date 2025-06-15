@@ -100,7 +100,7 @@ export function ContactForm() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-0">
+    <div className="w-full max-w-2xl mx-auto p-6 bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-0" dir="rtl">
       <h2 className="text-3xl font-light text-center mb-8 text-gray-900">צור קשר</h2>
       
       <Tabs defaultValue="contact" value={formType} onValueChange={handleTabChange} className="w-full">
