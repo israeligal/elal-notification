@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { subscribeRequestSchema } from '@/types/notification.type'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Bell, CheckCircle, Loader2, Mail } from 'lucide-react'
 
 interface SubscribeFormProps {
   onSuccess?: () => void
@@ -13,6 +15,7 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
+  const [showResendOption, setShowResendOption] = useState(false)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -23,7 +26,7 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
       // Validate email using Zod schema
       const validation = subscribeRequestSchema.safeParse({ email })
       if (!validation.success) {
-        throw new Error('Please enter a valid email address')
+        throw new Error('אנא הזן כתובת מייל תקינה')
       }
 
       const response = await fetch('/api/subscribe', {
@@ -38,11 +41,22 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
 
       if (response.ok) {
         setIsSuccess(true)
-        setMessage(data.message || 'Successfully subscribed! Please check your email to verify.')
+        
+        // Handle different success scenarios
+        if (data.alreadySubscribed) {
+          setMessage('כבר נרשמת! תמשיך לקבל עדכונים מאל על.')
+        } else if (data.emailFailed) {
+          setMessage('ההרשמה נוצרה אך לא הצלחנו לשלוח מייל אימות.')
+          setIsSuccess(false) // Don't show success state
+          setShowResendOption(true) // Show resend option
+        } else {
+          setMessage(data.message || 'נרשמת בהצלחה! אנא בדוק את המייל שלך כדי לאמת.')
+        }
+        
         setEmail('')
         onSuccess?.()
       } else {
-        throw new Error(data.error || 'Failed to subscribe')
+        throw new Error(data.error || 'ההרשמה נכשלה')
       }
     } catch (error) {
       const errorMessage = (error as Error).message
@@ -54,62 +68,182 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
     }
   }
 
+  async function handleResendVerification() {
+    setIsLoading(true)
+    setMessage('')
+    setShowResendOption(false)
+
+    try {
+      const response = await fetch('/api/subscription/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        if (data.alreadyVerified) {
+          setIsSuccess(true)
+          setMessage('המייל כבר מאומת! תקבל עדכונים.')
+        } else {
+          setMessage('מייל אימות נשלח שוב. בדוק את תיבת הדואר שלך.')
+        }
+      } else {
+        throw new Error(data.error || 'שליחה חוזרת נכשלה')
+      }
+    } catch (error) {
+      const errorMessage = (error as Error).message
+      setMessage(errorMessage)
+      setShowResendOption(true) // Show option again on failure
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="email" className="text-sm font-medium text-gray-700">
-            כתובת מייל | Email Address
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your.email@example.com"
-            required
-            disabled={isLoading}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-base"
-            dir="ltr"
-          />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="w-full max-w-2xl mx-auto"
+    >
+      <div className="bg-white/80 backdrop-blur-sm border-0 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="text-center pb-8 pt-8 px-8">
+          <motion.div 
+            className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Bell className="w-8 h-8 text-white" />
+          </motion.div>
+          <h3 className="text-3xl font-light text-gray-900 mb-3">
+            עדכוני אל על
+          </h3>
+          <p className="text-gray-600 text-lg leading-relaxed max-w-md mx-auto">
+            קבל התראות מיידיות כשהאתר מתעדכן
+          </p>
         </div>
+        
+        <div className="px-8 pb-8">
+          <AnimatePresence mode="wait">
+            {isSuccess ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="text-center py-8"
+              >
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-2xl font-medium text-gray-900 mb-2">הכל מוכן!</h3>
+                <p className="text-gray-600">נודיע לך כשיהיו עדכונים חדשים</p>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="form"
+                onSubmit={handleSubmit}
+                className="space-y-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-700 block text-right">
+                    כתובת המייל שלך
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-11 pr-4 h-12 bg-gray-50 border-0 focus:bg-white transition-colors rounded-xl text-right"
+                      placeholder="your@email.com"
+                      required
+                      disabled={isLoading}
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-base"
-        >
-          {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              שולח... | Subscribing...
-            </span>
-          ) : (
-            'הרשם לעדכונים | Subscribe to Updates'
-          )}
-        </button>
-      </form>
+                {message && !isSuccess && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                    <p className="text-red-800 text-sm text-right">{message}</p>
+                    {showResendOption && (
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={isLoading}
+                        className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium underline"
+                      >
+                        שלח מייל אימות שוב
+                      </button>
+                    )}
+                  </div>
+                )}
 
-      {message && (
-        <div
-          className={`mt-4 p-4 rounded-lg text-sm ${
-            isSuccess
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
-        >
-          {message}
+                <button
+                  type="submit"
+                  disabled={isLoading || !email}
+                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      מירשם אותך...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Bell className="w-5 h-5" />
+                      התחל לקבל עדכונים
+                    </span>
+                  )}
+                </button>
+              </motion.form>
+            )}
+          </AnimatePresence>
         </div>
-      )}
-
-      <div className="mt-6 text-xs text-gray-500 leading-relaxed">
-        <p className="mb-2">
-          <strong>מה תקבל:</strong> עדכונים מיידיים על שינויים באתר אל על, הודעות על טיסות ושירותים
-        </p>
-        <p>
-          <strong>What you&apos;ll receive:</strong> Immediate updates about changes on El Al website, flight and service notifications
-        </p>
+        
+        {!isSuccess && (
+          <div className="bg-gray-50 px-8 py-6 border-t border-gray-100">
+            <div className="flex justify-between items-center w-full text-sm text-gray-600">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 text-xs">✓</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">בדיקות כל 10 דקות</p>
+                  <p className="text-xs">Continuous monitoring</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-green-600 text-xs">✓</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">ללא דואר זבל</p>
+                  <p className="text-xs">Only important updates</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-purple-600 text-xs">✓</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">ביטול בכל עת</p>
+                  <p className="text-xs">Unsubscribe anytime</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </motion.div>
   )
 }

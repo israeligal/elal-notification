@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 import { db, subscribers } from '@/lib/db/connection'
 import { logInfo, logError } from '@/lib/utils/logger'
 import { generateVerificationToken } from '@/lib/utils/crypto'
@@ -8,7 +8,10 @@ export async function createSubscription({
   email 
 }: { 
   email: string 
-}): Promise<Subscriber> {
+}): Promise<{ 
+  subscriber: Subscriber 
+  verificationToken: string 
+}> {
   try {
     logInfo('Creating new subscription', { email })
 
@@ -21,38 +24,45 @@ export async function createSubscription({
 
     if (existingSubscriber.length > 0) {
       const subscriber = existingSubscriber[0]
-      if (subscriber.isActive) {
-        throw new Error('Email already subscribed')
+      if (subscriber.isActive && subscriber.verifiedAt) {
+        throw new Error('Email already subscribed and verified')
       }
       
-      // Reactivate existing subscriber
+      // Reactivate existing subscriber with new verification token
+      const verificationToken = generateVerificationToken()
       const updatedSubscriber = await db
         .update(subscribers)
         .set({
           isActive: true,
-          verifiedAt: new Date(), // Immediately verified
-          verificationToken: null
+          verificationToken,
+          verifiedAt: null
         })
         .where(eq(subscribers.id, subscriber.id))
         .returning()
 
       logInfo('Reactivated existing subscription', { email, subscriberId: subscriber.id })
-      return updatedSubscriber[0] as Subscriber
+      return { 
+        subscriber: updatedSubscriber[0] as Subscriber, 
+        verificationToken 
+      }
     }
 
-    // Create new subscriber (immediately active and verified)
+    // Create new subscriber
+    const verificationToken = generateVerificationToken()
     const newSubscriber = await db
       .insert(subscribers)
       .values({
         email,
         isActive: true,
-        verifiedAt: new Date(), // Immediately verified
-        verificationToken: null
+        verificationToken
       })
       .returning()
 
     logInfo('Created new subscription', { email, subscriberId: newSubscriber[0].id })
-    return newSubscriber[0] as Subscriber
+    return { 
+      subscriber: newSubscriber[0] as Subscriber, 
+      verificationToken 
+    }
 
   } catch (error) {
     logError('Failed to create subscription', error as Error, { email })
@@ -162,6 +172,7 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
           eq(subscribers.isActive, true),
           // Only include verified subscribers
           // Note: verifiedAt is not null means subscriber is verified
+          sql`verified_at IS NOT NULL`
         )
       )
 
