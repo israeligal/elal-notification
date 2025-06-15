@@ -8,14 +8,19 @@ import { unsubscribeRequestSchema } from '@/types/notification.type'
 export default function UnsubscribePage() {
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
+  const [token, setToken] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
 
   useEffect(() => {
     const emailParam = searchParams.get('email')
+    const tokenParam = searchParams.get('token')
     if (emailParam) {
       setEmail(decodeURIComponent(emailParam))
+    }
+    if (tokenParam) {
+      setToken(tokenParam)
     }
   }, [searchParams])
 
@@ -36,7 +41,7 @@ export default function UnsubscribePage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, token: token || undefined }),
       })
 
       const data = await response.json()
