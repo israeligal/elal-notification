@@ -1,0 +1,91 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## MOST IMPORTANT Guidelines
+
+- Mobile first
+- Try no to solve things using "useEffect"
+- Use modules and not classes where possible
+- Search for files with similar names before creating a file
+- Always use existing types if poosible from @/types folder
+- Always make sure db queries are under organization
+- use object deconstruction in function parameters
+- dont add validations
+- dont be strict about validations and types
+- Simple is king.
+- Dont wrap functions
+- Use tree shaking
+- prefer using z.infer<typeof XXXXX> instead of creating both type and schema
+- Client components must be explicitly marked with `'use client'` at the top of the file.
+- Use kebab-case for directory names (e.g., `components/auth-form`) and PascalCase for component files.
+- Prefer named exports over default exports, i.e. `export function Button() { /* ... */ }` instead of `export default function Button() { /* ... */ }`.
+- Minimize `'use client'` directives:
+  - Keep most components as React Server Components (RSC)
+  - Only use client components when you need interactivity and wrap in `Suspense` with fallback UI
+  - Create small client component wrappers around interactive elements
+- Avoid unnecessary `useState` and `useEffect` when possible:
+  - Use server components for data fetching
+  - Use React Server Actions for form handling
+  - Use URL search params for shareable state
+- Follow the established patterns in the codebase
+- Keep files focused on a single responsibility
+- Use appropriate directory nesting, but avoid going too deep
+- Component-based architecture
+- Modular and maintainable code structure
+- Internationalization ready
+- SEO optimized
+- Performance focused
+- Use flex box
+- Do not create test files and scripts unless sepcificaly asked for
+-  Do not try to run or build unless sepcificaly asked for
+
+## File Naming Conventions
+
+- **Components**: Use PascalCase for component files
+  - Example: `UserProfile.tsx`
+- **Hooks**: Use camelCase with `use` prefix
+  - Example: `useAuthentication.ts`
+- **Services**: Use camelCase with `.service.ts` suffix under services package
+  - Example: `employee.service.ts`
+- **Types**: Use camelCase with `.type.ts` suffix
+  - Example: `employee.type.ts`
+- **API Routes**: Use camelCase with `.route.ts` suffix
+  - Example: `employee.route.ts`
+
+## Guidelines for New Files
+
+
+### Adding New Components
+- Reusable UI components go in `components/common/`
+- Feature-specific components go in `components/[feature]/`
+- Layout components go in `components/layout/`
+
+### Adding New Server Business Logic
+- Services should be placed in `./services/` with `.service.ts` suffix
+
+### Adding New Types
+- All TypeScript interfaces and types should be in `types/` with `.type.ts` suffix or in packages/types
+- Group related types in the same file when appropriate
+- Search for existing type first
+
+### Adding New Hooks
+- Custom hooks should be placed in `hooks/` with a `use` prefix
+
+
+## Technology Stack
+- Next.js 15 (App Router)
+- React Server Components (RSC) first approach
+- PostgreSQL with Drizzle ORM (hosted on NeonDB)
+- Tailwind CSS + Shadcn UI components
+- Shadcn UI
+- TypeScript
+- Storybook
+- Vitest/Playwright Testing
+- tsup for packages
+- PNPM package manager
+- Resend service with React Email templates
+- Cron jobs via GitHub Actions
+- Better Stack (Logtail) structured logging
+- Clerk (complete user management)
