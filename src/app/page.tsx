@@ -1,5 +1,6 @@
 import { SubscribeForm } from '@/components/subscribe-form/SubscribeForm'
 import { AnimatedFeatures } from '@/components/layout/AnimatedFeatures'
+import { ContactForm } from '@/components/contact-form'
 
 export default function HomePage() {
   return (
@@ -9,6 +10,8 @@ export default function HomePage() {
         <SubscribeForm />
 
         <AnimatedFeatures />
+
+        <ContactForm />
       </div>
     </div>
   )

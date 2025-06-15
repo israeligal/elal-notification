@@ -44,18 +44,9 @@ export function VerificationEmail({
               color: '#003d82', 
               fontSize: '28px',
               textAlign: 'center',
-              marginBottom: '10px'
-            }}>
-              ברוכים הבאים!
-            </Heading>
-            <Heading style={{ 
-              color: '#666', 
-              fontSize: '20px',
-              textAlign: 'center',
-              fontWeight: 'normal',
               marginBottom: '30px'
             }}>
-              Welcome!
+              ברוכים הבאים!
             </Heading>
           </Section>
 
@@ -64,19 +55,10 @@ export function VerificationEmail({
               fontSize: '18px', 
               lineHeight: '1.6',
               color: '#333',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              תודה שנרשמת לקבלת עדכוני אל על
-            </Text>
-            <Text style={{ 
-              fontSize: '16px', 
-              lineHeight: '1.5',
-              color: '#666',
               marginBottom: '30px',
               textAlign: 'center'
             }}>
-              Thank you for subscribing to El Al updates
+              תודה שנרשמת לקבלת עדכוני אל על
             </Text>
           </Section>
 
@@ -91,34 +73,26 @@ export function VerificationEmail({
               fontSize: '16px',
               lineHeight: '1.6',
               color: '#333',
-              marginBottom: '20px'
+              marginBottom: '25px'
             }}>
               כדי להשלים את ההרשמה, אנא לחץ על הקישור להלן כדי לאמת את כתובת המייל שלך:
             </Text>
-            <Text style={{ 
-              fontSize: '14px',
-              lineHeight: '1.5',
-              color: '#666',
-              marginBottom: '25px'
-            }}>
-              To complete your subscription, please click the link below to verify your email address:
-            </Text>
             
             <div style={{ textAlign: 'center' }}>
-              <Button 
-                href={verificationUrl}
-                style={{
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  padding: '15px 30px',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontSize: '16px',
-                  fontWeight: 'bold'
-                }}
-              >
-                אמת את המייל שלי | Verify My Email
-              </Button>
+                              <Button 
+                  href={verificationUrl}
+                  style={{
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    padding: '15px 30px',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    fontSize: '16px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  אמת את המייל שלי
+                </Button>
             </div>
           </Section>
 
@@ -127,23 +101,12 @@ export function VerificationEmail({
               fontSize: '14px',
               color: '#666',
               lineHeight: '1.5',
-              marginBottom: '15px'
+              marginBottom: '20px'
             }}>
               <strong>מה תקבל:</strong><br />
               • עדכונים מיידיים על שינויים באתר אל על<br />
               • הודעות על טיסות, לוחות זמנים ושירותים<br />
               • מידע חשוב לנוסעים
-            </Text>
-            <Text style={{ 
-              fontSize: '13px',
-              color: '#888',
-              lineHeight: '1.4',
-              marginBottom: '20px'
-            }}>
-              <strong>What you&apos;ll receive:</strong><br />
-              • Immediate updates about changes on the El Al website<br />
-              • Notifications about flights, schedules, and services<br />
-              • Important information for passengers
             </Text>
           </Section>
 
@@ -168,8 +131,7 @@ export function VerificationEmail({
               textAlign: 'center',
               lineHeight: '1.4'
             }}>
-                             אם לא ביקשת לקבל עדכונים אלה, תוכל להתעלם ממייל זה.<br />
-               If you didn&apos;t request these updates, you can ignore this email.
+              אם לא ביקשת לקבל עדכונים אלה, תוכל להתעלם ממייל זה.
             </Text>
           </Section>
         </Container>

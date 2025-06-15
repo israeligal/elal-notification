@@ -44,18 +44,9 @@ export function ConfirmationEmail({
               color: '#28a745', 
               fontSize: '28px',
               textAlign: 'center',
-              marginBottom: '10px'
-            }}>
-              !הרשמה הושלמה בהצלחה
-            </Heading>
-            <Heading style={{ 
-              color: '#666', 
-              fontSize: '20px',
-              textAlign: 'center',
-              fontWeight: 'normal',
               marginBottom: '30px'
             }}>
-              Registration Complete!
+              !הרשמה הושלמה בהצלחה
             </Heading>
           </Section>
 
@@ -64,19 +55,10 @@ export function ConfirmationEmail({
               fontSize: '18px', 
               lineHeight: '1.6',
               color: '#333',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              תודה שאימתת את כתובת המייל שלך.
-            </Text>
-            <Text style={{ 
-              fontSize: '16px', 
-              lineHeight: '1.5',
-              color: '#666',
               marginBottom: '30px',
               textAlign: 'center'
             }}>
-              Thank you for verifying your email address.
+              תודה שאימתת את כתובת המייל שלך.
             </Text>
           </Section>
 
@@ -91,19 +73,10 @@ export function ConfirmationEmail({
               fontSize: '16px',
               lineHeight: '1.6',
               color: '#155724',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              עכשיו תקבל עדכונים על חדשות אל על ישירות למייל.
-            </Text>
-            <Text style={{ 
-              fontSize: '14px',
-              lineHeight: '1.5',
-              color: '#155724',
               marginBottom: '25px',
               textAlign: 'center'
             }}>
-              You will now receive El Al updates directly to your inbox.
+              עכשיו תקבל עדכונים על חדשות אל על ישירות למייל.
             </Text>
           </Section>
 
@@ -112,25 +85,13 @@ export function ConfirmationEmail({
               fontSize: '14px',
               color: '#666',
               lineHeight: '1.5',
-              marginBottom: '15px'
+              marginBottom: '20px'
             }}>
               <strong>מה תקבל:</strong><br />
               • עדכונים מיידיים על שינויים באתר אל על<br />
               • הודעות על טיסות, לוחות זמנים ושירותים<br />
               • מידע חשוב לנוסעים<br />
               • בדיקות כל 10 דקות - רק עדכונים חשובים
-            </Text>
-            <Text style={{ 
-              fontSize: '13px',
-              color: '#888',
-              lineHeight: '1.4',
-              marginBottom: '20px'
-            }}>
-              <strong>What you&apos;ll receive:</strong><br />
-              • Immediate updates about changes on the El Al website<br />
-              • Notifications about flights, schedules, and services<br />
-              • Important information for passengers<br />
-              • Monitoring every 10 minutes - only important updates
             </Text>
           </Section>
 
@@ -156,25 +117,24 @@ export function ConfirmationEmail({
               lineHeight: '1.4',
               marginBottom: '20px'
             }}>
-              רוצה לבטל את המנוי? תוכל לעשות זאת בכל עת דרך הקישור שיופיע בתחתית כל מייל<br />
-              Want to unsubscribe? You can do so anytime via the link at the bottom of each email
+              רוצה לבטל את המנוי? תוכל לעשות זאת בכל עת דרך הקישור שיופיע בתחתית כל מייל
             </Text>
             
             <div style={{ textAlign: 'center' }}>
-              <Button 
-                href={unsubscribeUrl}
-                style={{
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontSize: '12px',
-                  fontWeight: 'normal'
-                }}
-              >
-                בטל מנוי | Unsubscribe
-              </Button>
+                              <Button 
+                  href={unsubscribeUrl}
+                  style={{
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    padding: '10px 20px',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    fontSize: '12px',
+                    fontWeight: 'normal'
+                  }}
+                >
+                  בטל מנוי
+                </Button>
             </div>
           </Section>
         </Container>

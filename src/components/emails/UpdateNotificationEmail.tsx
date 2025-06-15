@@ -47,18 +47,9 @@ export function UpdateNotificationEmail({
               color: '#003d82', 
               fontSize: '24px',
               textAlign: 'center',
-              marginBottom: '20px'
-            }}>
-              עדכונים חדשים מאל על
-            </Heading>
-            <Heading style={{ 
-              color: '#666', 
-              fontSize: '18px',
-              textAlign: 'center',
-              fontWeight: 'normal',
               marginBottom: '30px'
             }}>
-              New El Al Updates
+              עדכונים חדשים מאל על
             </Heading>
           </Section>
 
@@ -67,17 +58,9 @@ export function UpdateNotificationEmail({
               fontSize: '16px', 
               lineHeight: '1.6',
               color: '#333',
-              marginBottom: '20px'
-            }}>
-              שלום רב, נמצאו עדכונים חדשים באתר אל על:
-            </Text>
-            <Text style={{ 
-              fontSize: '14px', 
-              lineHeight: '1.5',
-              color: '#666',
               marginBottom: '30px'
             }}>
-              Hello, new updates were found on the El Al website:
+              שלום רב, נמצאו עדכונים חדשים באתר אל על:
             </Text>
           </Section>
 
@@ -131,7 +114,7 @@ export function UpdateNotificationEmail({
                     fontWeight: 'bold'
                   }}
                 >
-                  קרא עוד | Read More
+                  קרא עוד
                 </Button>
               )}
             </Section>
