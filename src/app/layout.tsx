@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: 'עדכוני אל על | El Al Updates Notification',
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="he" dir="rtl">
       <body className="antialiased">
         {children}
+        <Toaster />
         <Analytics />
       </body>
     </html>
