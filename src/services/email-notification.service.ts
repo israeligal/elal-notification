@@ -2,8 +2,8 @@ import { Resend } from 'resend'
 import { render } from '@react-email/render'
 import { logInfo, logError } from '@/lib/utils/logger'
 import { UpdateNotificationEmail } from '@/components/emails/UpdateNotificationEmail'
+import { VerificationEmail } from '@/components/emails/VerificationEmail'
 import type { ScrapedContent, Subscriber } from '@/types/notification.type'
-import { ConfirmationEmail } from '@/components/emails/ConfirmationEmail'
 
 if (!process.env.RESEND_API_KEY) {
   throw new Error('RESEND_API_KEY environment variable is required')
@@ -48,7 +48,7 @@ export async function sendUpdateNotifications({
         try {
           const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`
           
-          const emailHtml = await render(UpdateNotificationEmail({
+          const emailHtml = render(UpdateNotificationEmail({
             updates,
             unsubscribeUrl,
             timestamp: new Date()
@@ -89,32 +89,34 @@ export async function sendUpdateNotifications({
   }
 }
 
-export async function sendConfirmationEmail({ 
-  email 
+export async function sendVerificationEmail({ 
+  email, 
+  verificationToken 
 }: { 
   email: string 
+  verificationToken: string 
 }): Promise<void> {
   try {
-    logInfo('Sending confirmation email', { email })
+    logInfo('Sending verification email', { email })
 
-    const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`
+    const verificationUrl = `${process.env.APP_URL}/api/subscription/verify?email=${encodeURIComponent(email)}&token=${verificationToken}`
     
-    const emailHtml = await render(ConfirmationEmail({
+    const emailHtml = render(VerificationEmail({
       email,
-      unsubscribeUrl
+      verificationUrl
     }))
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
-      subject: 'ברוכים הבאים לעדכוני אל על | Welcome to El Al Updates',
+      subject: 'אמת את הרשמתך לעדכוני אל על | Verify your El Al updates subscription',
       html: emailHtml,
     })
 
-    logInfo('Confirmation email sent successfully', { email })
+    logInfo('Verification email sent successfully', { email })
 
   } catch (error) {
-    logError('Failed to send confirmation email', error as Error, { email })
+    logError('Failed to send verification email', error as Error, { email })
     throw error
   }
 }

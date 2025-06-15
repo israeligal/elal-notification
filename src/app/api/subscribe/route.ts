@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSubscription } from '@/services/subscription.service'
-import { sendConfirmationEmail } from '@/services/email-notification.service'
+import { sendVerificationEmail } from '@/services/email-notification.service'
 import { subscribeRequestSchema } from '@/types/notification.type'
 import { logInfo, logError } from '@/lib/utils/logger'
 
@@ -21,31 +21,45 @@ export async function POST(request: NextRequest) {
 
     logInfo('Processing subscription request', { email })
 
-    // Create subscription (immediately active)
-    const subscriber = await createSubscription({ email })
+    // Create subscription
+    const { subscriber, verificationToken } = await createSubscription({ email })
 
-    // Send confirmation email
-    await sendConfirmationEmail({ email })
+    // Send verification email - handle failure gracefully
+    try {
+      await sendVerificationEmail({ email, verificationToken })
+      
+      logInfo('Subscription created and verification email sent', { 
+        email,
+        subscriberId: subscriber.id 
+      })
 
-    logInfo('Subscription created and confirmation email sent', { 
-      email,
-      subscriberId: subscriber.id 
-    })
+      return NextResponse.json({
+        success: true,
+        message: 'Subscription created. Please check your email to verify.',
+        requiresVerification: true
+      })
 
-    return NextResponse.json({
-      success: true,
-      message: 'Subscription successful! Welcome to El Al updates.',
-      requiresVerification: false
-    })
+    } catch (emailError) {
+      logError('Failed to send verification email', emailError as Error, { email })
+      
+      // Still return success but with different message
+      return NextResponse.json({
+        success: true,
+        message: 'Subscription created, but we had trouble sending the verification email. Please try subscribing again.',
+        requiresVerification: true,
+        emailFailed: true
+      })
+    }
 
   } catch (error) {
     logError('Failed to process subscription', error as Error)
     
     if ((error as Error).message.includes('already subscribed')) {
-      return NextResponse.json(
-        { error: 'Email already subscribed' },
-        { status: 409 }
-      )
+      return NextResponse.json({
+        success: true,
+        message: 'You are already subscribed and will receive El Al updates.',
+        alreadySubscribed: true
+      })
     }
 
     return NextResponse.json(
