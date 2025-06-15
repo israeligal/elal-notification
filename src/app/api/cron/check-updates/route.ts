@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
       logInfo('Scheduled monitoring check completed successfully', result)
       
       return NextResponse.json({
-        success: true,
         timestamp: new Date().toISOString(),
         ...result
       })

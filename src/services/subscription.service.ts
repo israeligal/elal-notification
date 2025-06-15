@@ -28,22 +28,29 @@ export async function createSubscription({
         throw new Error('Email already subscribed and verified')
       }
       
-      // Reactivate existing subscriber with new verification token
+      // Reactivate existing subscriber
       const verificationToken = generateVerificationToken()
+      const wasVerified = !!subscriber.verifiedAt
+      
       const updatedSubscriber = await db
         .update(subscribers)
         .set({
           isActive: true,
-          verificationToken,
-          verifiedAt: null
+          verificationToken: wasVerified ? null : verificationToken,
+          verifiedAt: wasVerified ? subscriber.verifiedAt : null
         })
         .where(eq(subscribers.id, subscriber.id))
         .returning()
 
-      logInfo('Reactivated existing subscription', { email, subscriberId: subscriber.id })
+      logInfo('Reactivated existing subscription', { 
+        email, 
+        subscriberId: subscriber.id,
+        wasAlreadyVerified: wasVerified
+      })
+      
       return { 
         subscriber: updatedSubscriber[0] as Subscriber, 
-        verificationToken 
+        verificationToken: wasVerified ? '' : verificationToken
       }
     }
 
@@ -80,31 +87,41 @@ export async function verifySubscription({
   try {
     logInfo('Verifying subscription', { email })
 
-    const subscriber = await db
+    // First check if subscriber exists and is already verified
+    const existingSubscriber = await db
       .select()
       .from(subscribers)
-      .where(
-        and(
-          eq(subscribers.email, email),
-          eq(subscribers.verificationToken, token)
-        )
-      )
+      .where(eq(subscribers.email, email))
       .limit(1)
 
-    if (!subscriber.length) {
-      throw new Error('Invalid verification token or email')
+    if (!existingSubscriber.length) {
+      throw new Error('Email not found in subscription list')
     }
 
+    const subscriber = existingSubscriber[0]
+
+    // If already verified, return success without changing anything
+    if (subscriber.verifiedAt) {
+      logInfo('Subscription already verified', { email, subscriberId: subscriber.id })
+      return subscriber as Subscriber
+    }
+
+    // Check if verification token matches
+    if (subscriber.verificationToken !== token) {
+      throw new Error('Invalid verification token')
+    }
+
+    // Verify the subscription
     const verifiedSubscriber = await db
       .update(subscribers)
       .set({
         verifiedAt: new Date(),
         verificationToken: null
       })
-      .where(eq(subscribers.id, subscriber[0].id))
+      .where(eq(subscribers.id, subscriber.id))
       .returning()
 
-    logInfo('Subscription verified successfully', { email, subscriberId: subscriber[0].id })
+    logInfo('Subscription verified successfully', { email, subscriberId: subscriber.id })
     return verifiedSubscriber[0] as Subscriber
 
   } catch (error) {

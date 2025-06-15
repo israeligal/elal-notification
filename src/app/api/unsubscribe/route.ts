@@ -58,13 +58,20 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const email = searchParams.get('email')
+    const token = searchParams.get('token')
 
     if (!email) {
       return NextResponse.redirect(new URL('/unsubscribe-error', request.url))
     }
 
-    // Redirect to unsubscribe page with email
-    return NextResponse.redirect(new URL(`/unsubscribe?email=${encodeURIComponent(email)}`, request.url))
+    // Build redirect URL with both email and token (if provided)
+    const unsubscribePageUrl = new URL('/unsubscribe', request.url)
+    unsubscribePageUrl.searchParams.set('email', email)
+    if (token) {
+      unsubscribePageUrl.searchParams.set('token', token)
+    }
+
+    return NextResponse.redirect(unsubscribePageUrl)
 
   } catch (error) {
     logError('Unsubscribe GET request failed', error as Error)

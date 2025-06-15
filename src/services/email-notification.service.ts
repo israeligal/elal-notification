@@ -14,7 +14,7 @@ if (!process.env.APP_URL) {
 }
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@elal-updates.xyz'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@flightfare.pro'
 
 export async function sendUpdateNotifications({ 
   updates, 
@@ -50,8 +50,8 @@ export async function sendUpdateNotifications({
     for (const batch of batches) {
       const emailPromises = batch.map(async (subscriber) => {
         try {
-          const unsubscribeToken = subscriber.verifiedAt ? '' : `&token=${subscriber.verificationToken || ''}`
-          const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(subscriber.email)}${unsubscribeToken}`
+          // For verified subscribers (who receive notifications), no token needed for unsubscribe
+          const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`
           
           const emailHtml = await render(UpdateNotificationEmail({
             updates,
