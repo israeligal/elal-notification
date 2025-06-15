@@ -1,0 +1,52 @@
+{
+  "name": "elal-notification",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "test:scraper": "curl http://localhost:3000/api/test/scraper"
+  },
+  "dependencies": {
+    "@logtail/node": "^0.5.5",
+    "@neondatabase/serverless": "^1.0.1",
+    "@react-email/button": "^0.0.19",
+    "@react-email/components": "^0.0.42",
+    "@react-email/container": "^0.0.15",
+    "@react-email/heading": "^0.0.15",
+    "@react-email/html": "^0.0.11",
+    "@react-email/render": "^1.1.2",
+    "@react-email/section": "^0.0.16",
+    "@react-email/text": "^0.1.5",
+    "crypto-js": "^4.2.0",
+    "date-fns": "^4.1.0",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.44.2",
+    "next": "15.3.3",
+    "puppeteer": "^24.10.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^4.6.0",
+    "zod": "^3.25.64"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
+    "cssnano": "^7.0.7",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.3",
+    "postcss": "^8.5.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

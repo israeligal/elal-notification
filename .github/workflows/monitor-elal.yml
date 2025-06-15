@@ -1,0 +1,27 @@
+name: Monitor El Al Updates
+
+on:
+  schedule:
+    # Run every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check El Al Updates
+        run: |
+          curl -X GET "${{ secrets.APP_URL }}/api/cron/check-updates" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body \
+            --retry 3 \
+            --retry-delay 5
+            
+      - name: Log monitoring attempt
+        if: always()
+        run: |
+          echo "El Al monitoring check completed at $(date)"
+          echo "Status: ${{ job.status }}" 
