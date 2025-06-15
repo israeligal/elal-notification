@@ -26,17 +26,6 @@ export default function VerificationSuccessPage() {
             </p>
           </div>
 
-          {/* English Content */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">
-              Registration Complete!
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-              Thank you for verifying your email address. 
-              <br />
-              You will now receive El Al updates directly to your inbox.
-            </p>
-          </div>
 
           {/* Action Button */}
           <div className="space-y-4">
@@ -44,7 +33,7 @@ export default function VerificationSuccessPage() {
               href="/"
               className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-center"
             >
-              חזור לעמוד הבית | Back to Home
+              חזור לעמוד הבית 
             </Link>
           </div>
 
@@ -52,9 +41,6 @@ export default function VerificationSuccessPage() {
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500" dir="rtl">
               רוצה לבטל את המנוי? תוכל לעשות זאת בכל עת דרך הקישור שיופיע בתחתית כל מייל
-            </p>
-            <p className="text-xs text-gray-400 mt-2">
-              Want to unsubscribe? You can do so anytime via the link at the bottom of each email
             </p>
           </div>
         </div>
