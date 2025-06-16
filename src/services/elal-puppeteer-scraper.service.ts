@@ -213,8 +213,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       timeout: 30000 
     });
     
-    // Wait for page to load completely (same as Stagehand)
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 10000));
     
     // logInfo('Getting raw HTML content from page');
     const rawHtml = await page.content();
