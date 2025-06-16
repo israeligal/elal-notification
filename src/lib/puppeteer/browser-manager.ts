@@ -47,15 +47,3 @@ export async function getBrowser() {
 
   return browser;
 }
-
-export async function closeBrowser() {
-  if (browser) {
-    await browser.close();
-    browser = null;
-  }
-}
-
-export async function createPage() {
-  const browserInstance = await getBrowser();
-  return await browserInstance.newPage();
-} 
