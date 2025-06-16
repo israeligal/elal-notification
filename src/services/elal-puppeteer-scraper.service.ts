@@ -319,7 +319,7 @@ export async function checkForUpdatesWithPuppeteer({
   });
   
   const comparison = await generateObject({
-    model: anthropic('claude-3-5-sonnet-latest'),
+    model: anthropic('claude-3-5-haiku-latest'),
     schema: UpdateComparisonSchema,
     prompt: COMPARISON_PROMPT
       .replace('[PREVIOUS_CONTENT]', previousUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n'))
