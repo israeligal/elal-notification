@@ -29,7 +29,7 @@ export async function getBrowser() {
   
   browser = await puppeteerCore.launch({
     args: [...chromium.args, ...args],
-    executablePath: await chromium.executablePath(), // Let the package handle the binary location
+    executablePath: await chromium.executablePath(), // Use default chromium binary
     headless: "shell", // Required for Puppeteer with v137.0.0
     defaultViewport: viewport,
   });
