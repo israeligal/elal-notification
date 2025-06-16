@@ -227,35 +227,35 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
         </div>
         
         {!isSuccess && (
-          <div className="bg-gray-50 px-8 py-6 border-t border-gray-100">
-            <div className="flex justify-between items-center w-full text-sm text-gray-600">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-blue-600 text-xs">✓</span>
+          <div className="bg-gray-50 px-4 sm:px-8 py-6 border-t border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6 w-full">
+              <div className="flex items-center gap-3 sm:flex-1">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 text-sm font-medium">✓</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">בדיקות כל 10 דקות</p>
-                  <p className="text-xs">Continuous monitoring</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-green-600 text-xs">✓</span>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">ללא דואר זבל</p>
-                  <p className="text-xs">Only important updates</p>
+                <div className="text-right flex-1">
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">בדיקות כל 10 דקות</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Continuous monitoring</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-purple-600 text-xs">✓</span>
+              <div className="flex items-center gap-3 sm:flex-1">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-green-600 text-sm font-medium">✓</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">ביטול בכל עת</p>
-                  <p className="text-xs">Unsubscribe anytime</p>
+                <div className="text-right flex-1">
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">ללא דואר זבל</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Only important updates</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 sm:flex-1">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-purple-600 text-sm font-medium">✓</span>
+                </div>
+                <div className="text-right flex-1">
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">ביטול בכל עת</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Unsubscribe anytime</p>
                 </div>
               </div>
             </div>
