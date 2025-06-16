@@ -235,7 +235,6 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
                 </div>
                 <div className="text-right flex-1">
                   <p className="font-medium text-gray-900 text-sm sm:text-base">בדיקות כל 10 דקות</p>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Continuous monitoring</p>
                 </div>
               </div>
               
@@ -245,7 +244,6 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
                 </div>
                 <div className="text-right flex-1">
                   <p className="font-medium text-gray-900 text-sm sm:text-base">ללא דואר זבל</p>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Only important updates</p>
                 </div>
               </div>
               
@@ -255,7 +253,6 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
                 </div>
                 <div className="text-right flex-1">
                   <p className="font-medium text-gray-900 text-sm sm:text-base">ביטול בכל עת</p>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Unsubscribe anytime</p>
                 </div>
               </div>
             </div>
