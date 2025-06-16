@@ -10,7 +10,7 @@ const ELAL_URL = 'https://www.elal.com/eng/about-elal/news/recent-updates';
 
 // AI Prompts
 const EXTRACTION_PROMPT = `
-Extract Hebrew news updates from this El Al page HTML. Focus on security updates, flight changes, and announcements. Create short titles and include full content in Hebrew.
+Extract English news updates from this El Al page HTML. Focus on security updates, flight changes, and announcements. Create short titles and include full content in Hebrew.
 
 HTML Content:
 `;
