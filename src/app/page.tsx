@@ -14,14 +14,14 @@ export default function HomePage() {
         <SubscribeForm />
 
         <AnimatedFeatures />
-
-        <ContactForm />
-
+          
         <FlightTrackingRecommendation />
 
         <LocalAttractionsRecommendation />
 
         <HealthProductsRecommendation />
+
+        <ContactForm />
       </div>
       
       <Footer />
