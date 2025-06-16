@@ -1,18 +1,36 @@
 "use server";
 
-import { scrapeElAlUpdatesWithStagehand } from "@/services/elal-stagehand-scraper.service";
+import { checkForUpdatesWithStagehand } from "@/services/elal-stagehand-scraper.service";
 import { logInfo, logError } from "@/lib/utils/logger";
+import type { ScrapedContent } from "@/types/notification.type";
 
-export async function runStagehandScraper() {
+export async function runStagehandScraper({ 
+  previousUpdates = [] 
+}: { 
+  previousUpdates?: ScrapedContent[] 
+} = {}) {
   try {
-    const updates = await scrapeElAlUpdatesWithStagehand();
+    const result = await checkForUpdatesWithStagehand({ previousUpdates });
     
-    logInfo('Stagehand scraping completed', { updateCount: updates.length });
+    logInfo('Stagehand scraping and update check completed', { 
+      hasChanged: result.hasChanged,
+      updateCount: result.updates.length,
+      significance: result.significance,
+      newUpdates: result.newUpdates.length,
+      modifiedUpdates: result.modifiedUpdates.length
+    });
     
     return {
       success: true,
-      updateCount: updates.length,
-      updates: updates.slice(0, 3),
+      hasChanged: result.hasChanged,
+      updateCount: result.updates.length,
+      updates: result.updates.slice(0, 3), // First 3 for preview
+      allUpdates: result.updates,
+      changeDetails: result.changeDetails,
+      significance: result.significance,
+      newUpdates: result.newUpdates,
+      modifiedUpdates: result.modifiedUpdates,
+      contentHash: result.contentHash,
       timestamp: new Date().toISOString()
     };
   } catch (error) {

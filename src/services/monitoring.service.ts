@@ -1,9 +1,31 @@
-import { desc, count } from 'drizzle-orm'
+import { desc, count, eq } from 'drizzle-orm'
 import { db, updateChecks, updateContent, notificationLogs } from '@/lib/db/connection'
 import { checkForUpdatesWithFallback } from '@/services/scraper-factory.service'
 import { getActiveSubscribers } from '@/services/subscription.service'
 import { sendUpdateNotifications } from '@/services/email-notification.service'
 import { logInfo, logError } from '@/lib/utils/logger'
+import type { ScrapedContent } from '@/types/notification.type'
+
+async function getPreviousUpdates({ lastCheckId }: { lastCheckId?: string }): Promise<ScrapedContent[]> {
+  if (!lastCheckId) return []
+  
+  try {
+    const updates = await db
+      .select()
+      .from(updateContent)
+      .where(eq(updateContent.updateCheckId, lastCheckId))
+    
+    return updates.map(update => ({
+      title: update.title,
+      content: update.content,
+      publishDate: update.publishDate?.toISOString(),
+      url: update.url || undefined
+    }))
+  } catch (error) {
+    logError('Failed to get previous updates', error as Error)
+    return []
+  }
+}
 
 export async function performMonitoringCheck(): Promise<{
   success: boolean
@@ -15,18 +37,24 @@ export async function performMonitoringCheck(): Promise<{
   try {
     logInfo('Starting monitoring check')
 
-    // Get the last check's content hash
+    // Get the last check's ID for retrieving previous updates
     const lastCheck = await db
       .select()
       .from(updateChecks)
       .orderBy(desc(updateChecks.checkTimestamp))
       .limit(1)
 
-    const previousHash = lastCheck.length > 0 ? lastCheck[0].contentHash : undefined
+    // Get previous updates instead of just hash
+    const previousUpdates = await getPreviousUpdates({ lastCheckId: lastCheck[0]?.id })
+    logInfo('DEBUG: Retrieved previous updates', { 
+      previousCount: previousUpdates.length,
+      lastCheckId: lastCheck[0]?.id,
+      previousTitles: previousUpdates.map(u => u.title)
+    })
 
     // Check for updates using scraper factory (with feature flags)
-    const { hasChanged, contentHash, updates, changeDetails, scrapeMethod } = await checkForUpdatesWithFallback({ 
-      previousHash 
+    const { hasChanged, contentHash, updates, changeDetails, scrapeMethod, significance } = await checkForUpdatesWithFallback({ 
+      previousUpdates 
     })
 
     // Create update check record
@@ -40,6 +68,9 @@ export async function performMonitoringCheck(): Promise<{
       .returning()
 
     const updateCheckId = updateCheckRecord[0].id
+
+    // Only send notifications for major significance changes
+    const shouldNotify = hasChanged && significance === 'major'
 
     // Store update content if there are changes
     if (hasChanged && updates.length > 0) {
@@ -62,43 +93,59 @@ export async function performMonitoringCheck(): Promise<{
         })
       )
 
-      // Send notifications if there are active subscribers
-      const activeSubscribers = await getActiveSubscribers()
-      
-      if (activeSubscribers.length > 0) {
-        logInfo('Sending notifications to subscribers', { 
-          subscriberCount: activeSubscribers.length 
-        })
+      // Send notifications only for major changes
+      if (shouldNotify) {
+        const activeSubscribers = await getActiveSubscribers()
+        
+        if (activeSubscribers.length > 0) {
+          logInfo('Sending notifications to subscribers', { 
+            subscriberCount: activeSubscribers.length 
+          })
 
-        const { sent, failed } = await sendUpdateNotifications({
-          updates,
-          subscribers: activeSubscribers
-        })
+          const { sent, failed } = await sendUpdateNotifications({
+            updates,
+            subscribers: activeSubscribers
+          })
 
-        // Log notification results
-        const subscriberEmails = activeSubscribers.map(sub => sub.email)
-        await db.insert(notificationLogs).values({
-          updateCheckId,
-          subscriberEmails,
-          status: sent > 0 ? 'sent' : 'failed',
-          errorMessage: failed > 0 ? `${failed} out of ${activeSubscribers.length} emails failed to send` : null
-        })
+          // Log notification results
+          const subscriberEmails = activeSubscribers.map(sub => sub.email)
+          await db.insert(notificationLogs).values({
+            updateCheckId,
+            subscriberEmails,
+            status: sent > 0 ? 'sent' : 'failed',
+            errorMessage: failed > 0 ? `${failed} out of ${activeSubscribers.length} emails failed to send` : null
+          })
 
-        logInfo('Monitoring check completed with notifications', {
-          updateCount: updates.length,
-          notificationsSent: sent,
-          notificationsFailed: failed,
-          scrapeMethod: scrapeMethod || 'unknown'
-        })
+          logInfo('Monitoring check completed with notifications', {
+            updateCount: updates.length,
+            notificationsSent: sent,
+            notificationsFailed: failed,
+            scrapeMethod: scrapeMethod || 'unknown'
+          })
 
-        return {
-          success: true,
-          hasUpdates: true,
-          updateCount: updates.length,
-          notificationsSent: sent
+          return {
+            success: true,
+            hasUpdates: true,
+            updateCount: updates.length,
+            notificationsSent: sent
+          }
+        } else {
+          logInfo('No active subscribers to notify')
+          
+          return {
+            success: true,
+            hasUpdates: true,
+            updateCount: updates.length,
+            notificationsSent: 0
+          }
         }
       } else {
-        logInfo('No active subscribers to notify')
+        // Updates detected but significance not major - no notifications sent
+        logInfo('Updates detected but significance not major - no notifications sent', { 
+          significance, 
+          hasChanged,
+          updateCount: updates.length
+        })
         
         return {
           success: true,

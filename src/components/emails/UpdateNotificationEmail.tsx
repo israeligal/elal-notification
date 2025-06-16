@@ -25,7 +25,7 @@ export function UpdateNotificationEmail({
   return (
     <Html dir="rtl" lang="he">
       <Head>
-        <title>עדכונים חדשים מאל על</title>
+        <title>עדכונים חדשים מאתר אל על</title>
       </Head>
       <Body style={{ 
         fontFamily: 'Arial, sans-serif', 
@@ -47,21 +47,27 @@ export function UpdateNotificationEmail({
               color: '#003d82', 
               fontSize: '24px',
               textAlign: 'center',
-              marginBottom: '30px'
+              marginBottom: '20px'
             }}>
-              עדכונים חדשים מאל על
+              עדכונים חדשים מאתר אל על
             </Heading>
-          </Section>
-
-          <Section>
-            <Text style={{ 
-              fontSize: '16px', 
-              lineHeight: '1.6',
-              color: '#333',
-              marginBottom: '30px'
-            }}>
-              שלום רב, נמצאו עדכונים חדשים באתר אל על:
-            </Text>
+            
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <Button 
+                href="https://www.elal.com/heb/about-elal/news/recent-updates"
+                style={{
+                  backgroundColor: '#003d82',
+                  color: 'white',
+                  padding: '12px 24px',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                צפה בכל העדכונים באתר אל על
+              </Button>
+            </div>
           </Section>
 
           {updates.map((update, index) => (

@@ -18,6 +18,14 @@ const NewsExtractionSchema = z.object({
   totalCount: z.number().describe('Total number of news updates found')
 });
 
+const UpdateComparisonSchema = z.object({
+  hasChanged: z.boolean().describe('Whether there are meaningful changes between the two sets of content'),
+  changeDetails: z.string().optional().describe('Description of what changed in Hebrew'),
+  newUpdates: z.array(z.string()).describe('List of completely new update titles that were not present before'),
+  modifiedUpdates: z.array(z.string()).describe('List of update titles that were modified'),
+  significance: z.enum(['major', 'minor', 'none']).describe('Significance level of the changes')
+});
+
 function cleanHtml(html: string): string {
   // Remove scripts, styles, and other unnecessary elements
   const cleaned = html
@@ -73,6 +81,7 @@ export async function scrapeElAlUpdatesWithStagehand(): Promise<ScrapedContent[]
 
     // Use AI SDK with Anthropic to extract news points
     logInfo('Using AI SDK with Anthropic to extract Hebrew news updates');
+
     
     const result = await generateObject({
       model: anthropic('claude-3-haiku-20240307'),
@@ -115,76 +124,94 @@ export async function scrapeElAlUpdatesWithStagehand(): Promise<ScrapedContent[]
 
   } catch (error) {
     logInfo('Error during AI-powered scraping', { error: (error as Error).message });
-    
-    // Fallback to manual extraction if AI fails
-    logInfo('Falling back to manual extraction');
-    try {
-      const page = stagehand.page;
-      
-      const manualText = await page.evaluate(() => {
-        const textElements: string[] = [];
-        
-        // Look for specific content areas
-        const contentSelectors = [
-          '.content',
-          '[rteinnerhtml]',
-          'app-paragraph',
-          'li',
-          'p'
-        ];
-        
-        contentSelectors.forEach(selector => {
-          const elements = document.querySelectorAll(selector);
-          elements.forEach(el => {
-            const text = el.textContent?.trim();
-            if (text && text.length > 30 && /[\u0590-\u05FF]/.test(text)) {
-              textElements.push(text);
-            }
-          });
-        });
-        
-        return textElements;
-      });
-      
-      const filteredTexts = manualText
-        .filter(text => 
-          !text.includes('El Al') &&
-          !text.includes('עדכונים בעקבות המצב הביטחוני | אל על') &&
-          text.length > 50
-        )
-        .slice(0, 10);
-      
-      const fallbackArticles: ScrapedContent[] = filteredTexts.map((text, index) => ({
-        title: `עדכון ${index + 1}`,
-        content: text,
-        updatedAt: undefined
-      }));
-      
-      logInfo('Fallback extraction successful', { count: fallbackArticles.length });
-      return fallbackArticles;
-      
-    } catch (fallbackError) {
-      logInfo('Fallback extraction also failed', { error: (fallbackError as Error).message });
-      throw error;
-    }
+    throw error;
   } finally {
     await stagehand.close();
   }
 }
 
-export async function checkForUpdatesWithStagehand({ previousHash }: { previousHash?: string } = {}) {
-  const updates = await scrapeElAlUpdatesWithStagehand();
-  const contentString = JSON.stringify(updates.map(item => ({
-    title: item.title,
-    content: item.content.substring(0, 200)
-  })));
-  const currentHash = createHash('sha256').update(contentString).digest('hex');
-  const hasChanged = previousHash ? previousHash !== currentHash : true;
+export async function checkForUpdatesWithStagehand({ 
+  previousUpdates = [] 
+}: { 
+  previousUpdates?: ScrapedContent[] 
+} = {}) {
+  const currentUpdates = await scrapeElAlUpdatesWithStagehand();
+  
+  const isFirstRun = previousUpdates.length === 0
+
+  const contentHash = createHash('sha256')
+    .update(JSON.stringify(currentUpdates.map(({ title, content }) => ({ title, content: content.substring(0, 200) }))))
+    .digest('hex');
+
+  // For first run, just return the updates without AI comparison
+  if (isFirstRun) {
+    logInfo('First run - returning updates without comparison', { 
+      currentCount: currentUpdates.length
+    });
+
+    return {
+      hasChanged: currentUpdates.length > 0,
+      contentHash,
+      updates: currentUpdates,
+      changeDetails: currentUpdates.length > 0 ? `נמצאו ${currentUpdates.length} עדכונים חדשים` : 'לא נמצאו עדכונים',
+      significance: currentUpdates.length > 0 ? 'major' as const : 'none' as const,
+      newUpdates: currentUpdates.map(u => u.title),
+      modifiedUpdates: [] as string[]
+    };
+  }
+
+  // Use AI to compare with previous updates
+  logInfo('Using AI to compare current updates with previous updates', { 
+    currentCount: currentUpdates.length,
+    previousCount: previousUpdates.length
+  });
+  
+  const comparison = await generateObject({
+    model: anthropic('claude-3-haiku-20240307'),
+    schema: UpdateComparisonSchema,
+    prompt: `
+      You are analyzing Hebrew news updates from El Al Airlines.
+      
+      Compare previous with current updates for meaningful changes.
+      Focus on: new flights affected, security changes, date changes, new restrictions.
+      Ignore: minor wording, formatting, reordering.
+      
+      Set significance levels:
+      - 'major': New flight cancellations, security updates, policy changes, new restrictions
+      - 'minor': Small text changes, date formatting, minor clarifications
+      - 'none': No meaningful changes
+      
+      PREVIOUS Updates:
+      ${previousUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n')}
+      
+      CURRENT Updates:
+      ${currentUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n')}
+      
+      Respond in Hebrew for changeDetails.
+    `,
+  });
+
+  logInfo('AI comparison completed', { 
+    comparison: comparison.object,
+    hasChanged: comparison.object.hasChanged,
+    significance: comparison.object.significance
+  });
+
+  logInfo('DEBUG: AI comparison result', {
+    hasChanged: comparison.object.hasChanged,
+    changeDetails: comparison.object.changeDetails,
+    currentCount: currentUpdates.length,
+    previousCount: previousUpdates.length,
+    currentTitles: currentUpdates.map(u => u.title)
+  });
 
   return {
-    hasChanged,
-    contentHash: currentHash,
-    updates,
-    changeDetails: hasChanged ? `Found ${updates.length} updates` : undefined
+    hasChanged: comparison.object.hasChanged,
+    contentHash,
+    updates: currentUpdates,
+    changeDetails: comparison.object.changeDetails,
+    significance: comparison.object.significance,
+    newUpdates: comparison.object.newUpdates,
+    modifiedUpdates: comparison.object.modifiedUpdates
   };
 } 
