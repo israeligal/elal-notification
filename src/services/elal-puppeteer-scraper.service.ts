@@ -34,6 +34,9 @@ IGNORE:
 
 If the core flight dates, destinations, and policies are identical, mark as hasChanged: false.
 
+In your response be very true to the content don't make up any information or enhance it.
+Try and be as accurate as possible and return the content as similar to the original as possible, while keeping the requirements above in mind.
+
 PREVIOUS Updates:
 [PREVIOUS_CONTENT]
 
