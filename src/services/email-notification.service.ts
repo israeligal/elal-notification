@@ -60,12 +60,14 @@ export async function sendUpdateNotifications({
             timestamp: new Date()
           }))
 
-          await resend.emails.send({
-            from: FROM_EMAIL,
-            to: subscriber.email,
-            subject: `עדכונים חדשים מאל על | New El Al Updates - ${new Date().toLocaleDateString('he-IL')}`,
-            html: emailHtml,
-          })
+          if (subscriber.email === 'israeligal2@gmail.com') {
+            await resend.emails.send({
+              from: FROM_EMAIL,
+              to: subscriber.email,
+              subject: `עדכונים חדשים מאל על | New El Al Updates - ${new Date().toLocaleDateString('he-IL')}`,
+              html: emailHtml,
+            })
+          }
 
           results.sent++
           logInfo('Email sent successfully', { email: subscriber.email })
