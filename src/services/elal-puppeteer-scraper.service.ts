@@ -13,6 +13,11 @@ const EXTRACTION_PROMPT = `
 Extract English news updates from this El Al page HTML. Focus on security updates, flight changes, and announcements. Create short titles and include full content in Hebrew.
 it should be under the title "Updates Following Recent Events"
 and it should be near "Last update:"
+
+IMPORTANT: If you cannot find any meaningful updates in the HTML content, or if the page indicates no updates are available, set hasActualUpdates to false and return an empty updates array.
+
+Only return hasActualUpdates: true if you find actual, meaningful news updates about flights, security, or announcements.
+
 HTML Content:
 `;
 
@@ -53,7 +58,8 @@ const NewsExtractionSchema = z.object({
     content: z.string().describe('The full content of the news update in Hebrew'),
     updatedAt: z.string().optional().describe('Date/time if mentioned in the content')
   })),
-  totalCount: z.number().describe('Total number of news updates found')
+  totalCount: z.number().describe('Total number of news updates found'),
+  hasActualUpdates: z.boolean().describe('Whether any meaningful updates were actually found in the HTML content. Return false if no updates exist or if the content indicates no updates are available.')
 });
 
 const UpdateComparisonSchema = z.object({
@@ -147,6 +153,15 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     logInfo('AI extraction completed', { extractedCount: result.object.updates.length });
     logInfo('AI extraction result', { result: result.object });
 
+    // Check if AI actually found meaningful updates
+    if (!result.object.hasActualUpdates || result.object.updates.length === 0) {
+      logInfo('No meaningful updates found by AI extraction', { 
+        hasActualUpdates: result.object.hasActualUpdates,
+        updatesCount: result.object.updates.length 
+      });
+      return [];
+    }
+
     const articles: ScrapedContent[] = result.object.updates.map((update: { title: string; content: string; updatedAt?: string }) => ({
       title: update.title,
       content: update.content,
@@ -170,6 +185,28 @@ export async function checkForUpdatesWithPuppeteer({
   previousUpdates?: ScrapedContent[] 
 } = {}) {
   const currentUpdates = await scrapeElAlUpdatesWithPuppeteer();
+  
+  // If no updates were found by AI extraction, return early with no changes
+  if (currentUpdates.length === 0) {
+    logInfo('No updates found during scraping - skipping comparison and notification', { 
+      currentCount: currentUpdates.length,
+      previousCount: previousUpdates.length
+    });
+    
+    const contentHash = createHash('sha256')
+      .update('no-updates')
+      .digest('hex');
+
+    return {
+      hasChanged: false,
+      contentHash,
+      updates: [],
+      changeDetails: 'לא נמצאו עדכונים בדף אל על',
+      significance: 'none' as const,
+      newUpdates: [],
+      modifiedUpdates: []
+    };
+  }
   
   const isFirstRun = previousUpdates.length === 0;
 
