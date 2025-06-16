@@ -128,7 +128,14 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     await page.setViewport({ width: 1920, height: 1080 });
     
     logInfo('Navigating to El Al updates page', { url: ELAL_URL });
-    posthog.capture('scrape_elal_updates_with_puppeteer_start');
+    await trackEvent({
+      distinctId: 'system',
+      event: 'scrape_elal_updates_with_puppeteer_start',
+      properties: {
+        url: ELAL_URL,
+        timestamp: new Date().toISOString(),
+      }
+    })
     await page.goto(ELAL_URL, { 
       waitUntil: 'domcontentloaded',
       timeout: 30000 
@@ -139,7 +146,14 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     
     logInfo('Getting raw HTML content from page');
     const rawHtml = await page.content();
-    posthog.capture('scrape_elal_updates_with_puppeteer_raw_html');
+    await trackEvent({
+      distinctId: 'system',
+      event: 'scrape_elal_updates_with_puppeteer_raw_html',
+      properties: {
+        rawLength: rawHtml.length,
+        timestamp: new Date().toISOString(),
+      }
+    })
     
     logInfo('Cleaning HTML content', { originalLength: rawHtml.length });
     const cleanedHtml = cleanHtml(rawHtml);
