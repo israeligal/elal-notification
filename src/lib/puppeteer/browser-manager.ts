@@ -1,8 +1,6 @@
 import chromium from "@sparticuz/chromium-min";
 import puppeteerCore from "puppeteer-core";
 
-const chromiumPack = "https://github.com/Sparticuz/chromium/releases/download/v137.0.0/chromium-v137.0.0-pack.tar";
-
 let browser: any = null; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export async function getBrowser() {
@@ -31,7 +29,7 @@ export async function getBrowser() {
   
   browser = await puppeteerCore.launch({
     args: [...chromium.args, ...args],
-    executablePath: await chromium.executablePath(chromiumPack),
+    executablePath: await chromium.executablePath(), // Let the package handle the binary location
     headless: "shell", // Required for Puppeteer with v137.0.0
     defaultViewport: viewport,
   });
