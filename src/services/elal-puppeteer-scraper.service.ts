@@ -5,6 +5,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { getBrowser } from "@/lib/puppeteer/browser-manager";
 import type { ScrapedContent } from "@/types/notification.type";
 import { logInfo } from "@/lib/utils/logger";
+import posthog from "posthog-js";
 
 const ELAL_URL = 'https://www.elal.com/eng/about-elal/news/recent-updates';
 
@@ -126,6 +127,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     await page.setViewport({ width: 1920, height: 1080 });
     
     logInfo('Navigating to El Al updates page', { url: ELAL_URL });
+    posthog.capture('scrape_elal_updates_with_puppeteer_start');
     await page.goto(ELAL_URL, { 
       waitUntil: 'domcontentloaded',
       timeout: 30000 
@@ -136,19 +138,25 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     
     logInfo('Getting raw HTML content from page');
     const rawHtml = await page.content();
+    posthog.capture('scrape_elal_updates_with_puppeteer_raw_html');
     
     logInfo('Cleaning HTML content', { originalLength: rawHtml.length });
     const cleanedHtml = cleanHtml(rawHtml);
     logInfo('HTML cleaned', { cleanedLength: cleanedHtml.length });
+    posthog.capture('scrape_elal_updates_with_puppeteer_html_cleaned', { cleanedHtml });
+
 
     // Use AI SDK with Anthropic to extract news points (exact same as Stagehand)
     logInfo('Using AI SDK with Anthropic to extract Hebrew news updates');
-    
+
+    posthog.capture('scrape_elal_updates_with_puppeteer_extraction_start');
     const result = await generateObject({
       model: anthropic('claude-3-5-haiku-latest'),
       schema: NewsExtractionSchema,
       prompt: EXTRACTION_PROMPT + cleanedHtml,
     });
+
+    posthog.capture('scrape_elal_updates_with_puppeteer_extraction_result', { result: result.object });
 
     logInfo('AI extraction completed', { extractedCount: result.object.updates.length });
     logInfo('AI extraction result', { result: result.object });
@@ -159,14 +167,21 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
         hasActualUpdates: result.object.hasActualUpdates,
         updatesCount: result.object.updates.length 
       });
+      posthog.capture('scrape_elal_updates_with_puppeteer_extraction_no_updates');
       return [];
     }
+
+
 
     const articles: ScrapedContent[] = result.object.updates.map((update: { title: string; content: string; updatedAt?: string }) => ({
       title: update.title,
       content: update.content,
       updatedAt: update.updatedAt
     }));
+
+    console.log('articles', articles);
+    posthog.capture('scrape_elal_updates_with_puppeteer_articles', { articles });
+
 
     logInfo('Successfully extracted articles using AI SDK', { count: articles.length });
     return articles;
