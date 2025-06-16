@@ -253,6 +253,16 @@ export async function checkForUpdatesWithPuppeteer({
       currentCount: currentUpdates.length,
       previousCount: previousUpdates.length
     });
+
+    await trackEvent({
+      distinctId: 'system',
+      event: 'scrape_elal_updates_with_puppeteer_no_updates',
+      properties: {
+        currentCount: currentUpdates.length,
+        previousCount: previousUpdates.length,
+        timestamp: new Date().toISOString(),
+      }
+    })
     
     const contentHash = createHash('sha256')
       .update('no-updates')
@@ -281,6 +291,16 @@ export async function checkForUpdatesWithPuppeteer({
       currentCount: currentUpdates.length
     });
 
+    await trackEvent({
+      distinctId: 'system',
+      event: 'scrape_elal_updates_with_puppeteer_first_run',
+      properties: {
+        currentCount: currentUpdates.length,
+        previousCount: previousUpdates.length,
+        timestamp: new Date().toISOString(),
+      }
+    })
+    
     return {
       hasChanged: currentUpdates.length > 0,
       contentHash,
@@ -319,6 +339,15 @@ export async function checkForUpdatesWithPuppeteer({
     previousCount: previousUpdates.length,
     currentTitles: currentUpdates.map(u => u.title)
   });
+
+  await trackEvent({
+    distinctId: 'system',
+    event: 'scrape_elal_updates_with_puppeteer_comparison_result',
+    properties: {
+      comparison: comparison.object,
+      timestamp: new Date().toISOString(),
+    }
+  })
 
   return {
     hasChanged: comparison.object.hasChanged,
