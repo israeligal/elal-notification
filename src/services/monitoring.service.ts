@@ -6,6 +6,7 @@ import { sendUpdateNotifications } from '@/services/email-notification.service'
 import { logInfo, logError } from '@/lib/utils/logger'
 import type { ScrapedContent } from '@/types/notification.type'
 import { closeBrowser } from '@/lib/puppeteer/browser-manager'
+import {trackEvent} from "@/lib/utils/analytics";
 
 async function getPreviousUpdates({ lastCheckId }: { lastCheckId?: string }): Promise<ScrapedContent[]> {
   if (!lastCheckId) return []
@@ -57,6 +58,27 @@ export async function performMonitoringCheck(): Promise<{
     const { hasChanged, contentHash, updates, changeDetails, scrapeMethod, significance } = await checkForUpdatesWithFallback({ 
       previousUpdates 
     })
+    
+    if (updates.length === 0) {
+      await trackEvent({
+        distinctId: 'system',
+        event: 'monitoring_check_no_updates',
+        properties: {
+          hasChanged,
+          changeDetails,
+          scrapeMethod,
+          significance,
+          previousUpdates,
+          timestamp: new Date().toISOString(),
+        }
+      })
+      return {
+        success: true,
+        hasUpdates: false,
+        updateCount: 0,
+        notificationsSent: 0
+      }
+    }
 
     // Create update check record
     const updateCheckRecord = await db
