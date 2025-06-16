@@ -5,6 +5,8 @@ alwaysApply: true
 ---
 ## MOST IMPORTANT Guidelines
 
+- Simple is king.
+- Do not create test files and routes unless i ask
 - Mobile first
 - Try no to solve things using "useEffect"
 - Use modules and not classes where possible
@@ -14,7 +16,6 @@ alwaysApply: true
 - use object deconstruction in function parameters
 - dont add validations
 - dont be strict about validations and types
-- Simple is king.
 - Dont wrap functions
 - Use tree shaking
 - prefer using z.infer<typeof XXXXX> instead of creating both type and schema
