@@ -11,7 +11,8 @@ const ELAL_URL = 'https://www.elal.com/eng/about-elal/news/recent-updates';
 // AI Prompts
 const EXTRACTION_PROMPT = `
 Extract English news updates from this El Al page HTML. Focus on security updates, flight changes, and announcements. Create short titles and include full content in Hebrew.
-
+it should be under the title "Updates Following Recent Events"
+and it should be near "Last update:"
 HTML Content:
 `;
 
@@ -63,29 +64,33 @@ const UpdateComparisonSchema = z.object({
 // Exact same HTML cleaning function from Stagehand version
 function cleanHtml(html: string): string {
   const cleaned = html
-    // Remove script tags and their content
+    // Remove script, style, meta, link, and title tags and their content
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove style tags and their content  
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/<meta\b[^>]*>/gi, '')
+    .replace(/<link\b[^>]*>/gi, '')
+    .replace(/<title\b[^<]*(?:(?!<\/title>)<[^<]*)*<\/title>/gi, '')
+    .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '')
     // Remove HTML comments
     .replace(/<!--[\s\S]*?-->/g, '')
     // Remove common tracking/analytics elements
-    .replace(/<iframe[^>]*>/gi, '')
-    .replace(/<\/iframe>/gi, '')
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
     .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '')
     // Remove CSS classes and IDs to reduce noise
     .replace(/\s(class|id)="[^"]*"/gi, '')
     // Remove inline styles
     .replace(/\sstyle="[^"]*"/gi, '')
-    // Remove data attributes
-    .replace(/\sdata-[^=]*="[^"]*"/gi, '')
-    // Remove angular attributes
-    .replace(/\s_ng[^=]*="[^"]*"/gi, '')
-    .replace(/\sng-[^=]*="[^"]*"/gi, '')
+    // Remove data attributes (with or without values)
+    .replace(/\sdata-[^=>\s]+(?:="[^"]*")?/gi, '')
+    // Remove angular attributes (with or without values)
+    .replace(/\s_ng\S+/gi, '')
+    .replace(/\sng-\S+/gi, '')
     // Remove aria-label and other accessibility attributes that might have noise
     .replace(/\saria-[^=]*="[^"]*"/gi, '')
     .replace(/\srole="[^"]*"/gi, '')
     .replace(/\stabindex="[^"]*"/gi, '')
+    // Remove event handlers
+    .replace(/\son[a-z]+="[^"]*"/gi, '')
     // Clean up extra whitespace
     .replace(/\s+/g, ' ')
     .replace(/>\s+</g, '><');
