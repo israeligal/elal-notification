@@ -48,11 +48,11 @@ importers:
         specifier: ^0.1.5
         version: 0.1.5(react@19.1.0)
       '@sparticuz/chromium':
-        specifier: ^137.0.1
-        version: 137.0.1
+        specifier: ^137.0.0
+        version: 137.0.0
       '@sparticuz/chromium-min':
-        specifier: ^137.0.1
-        version: 137.0.1
+        specifier: ^137.0.0
+        version: 137.0.0
       '@vercel/analytics':
         specifier: ^1.5.0
         version: 1.5.0(next@15.3.3(@opentelemetry/api@1.9.0)(@playwright/test@1.53.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
@@ -987,12 +987,12 @@ packages:
   '@selderee/plugin-htmlparser2@0.11.0':
     resolution: {integrity: sha512-P33hHGdldxGabLFjPPpaTxVolMrzrcegejx+0GxjrIb9Zv48D8yAIA/QTDR2dFl7Uz7urX8aX6+5bCZslr+gWQ==}
 
-  '@sparticuz/chromium-min@137.0.1':
-    resolution: {integrity: sha512-nvi7274JFAIeAe0+lUL1hjRz5TKVpIHaQ9Bz8ZsHxsYDivGw4np0q90rvNS2R1oDHJgBsXvB+L93OQ3s+sgzNw==}
+  '@sparticuz/chromium-min@137.0.0':
+    resolution: {integrity: sha512-n6V8MJWfv9aeLF4ejSQibvltV+PrAi28k+R5BMMcH/rciRGZvD+mWRxCrBEOYG4gnFk1AsPquETGoBYYbZLzcg==}
     engines: {node: '>=20.11.0'}
 
-  '@sparticuz/chromium@137.0.1':
-    resolution: {integrity: sha512-9ixW23xjzIgSwBPLhWFOnrJNsnEw4dQWZqGzBCFGwGVuBPkNiJHO5VAGKezXj81J0wMYwP04tLlJFjsN5z4ROw==}
+  '@sparticuz/chromium@137.0.0':
+    resolution: {integrity: sha512-Rk5MCbqWxfALTZzzMLkESRMATjE9C+Is4xQ/LVbwK+t/9Ar5p9KCBUxCzlrAAThM+h/XUK9VSFXn33+vDBR+cQ==}
     engines: {node: '>=20.11.0'}
 
   '@standard-schema/utils@0.3.0':
@@ -4174,7 +4174,7 @@ snapshots:
       domhandler: 5.0.3
       selderee: 0.11.0
 
-  '@sparticuz/chromium-min@137.0.1':
+  '@sparticuz/chromium-min@137.0.0':
     dependencies:
       follow-redirects: 1.15.9
       tar-fs: 3.0.9
@@ -4182,7 +4182,7 @@ snapshots:
       - bare-buffer
       - debug
 
-  '@sparticuz/chromium@137.0.1':
+  '@sparticuz/chromium@137.0.0':
     dependencies:
       follow-redirects: 1.15.9
       tar-fs: 3.0.9
