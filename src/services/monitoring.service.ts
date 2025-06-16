@@ -149,7 +149,7 @@ export async function performMonitoringCheck(): Promise<{
         
         return {
           success: true,
-          hasUpdates: true,
+          hasUpdates: false,
           updateCount: updates.length,
           notificationsSent: 0
         }

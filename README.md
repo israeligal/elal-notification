@@ -1,8 +1,8 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## 🎬 Stagehand AI Integration
+## 🤖 Puppeteer Web Scraping
 
-This project now includes [Stagehand](https://stagehand.dev) for AI-powered browser automation, providing more resilient scraping of Hebrew content with natural language instructions. See [STAGEHAND_SETUP.md](./STAGEHAND_SETUP.md) for configuration details.
+This project uses Puppeteer with AI-powered content extraction for scraping Hebrew content from El Al Airlines' updates page. The system works both locally and on Vercel using optimized Chromium.
 
 ## Getting Started
 

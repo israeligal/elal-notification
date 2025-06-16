@@ -1,4 +1,4 @@
-import { checkForUpdatesWithStagehand } from './elal-stagehand-scraper.service';
+import { checkForUpdatesWithPuppeteer } from './elal-puppeteer-scraper.service';
 import type { ScrapedContent } from '@/types/notification.type';
 
 interface UpdateCheckResult {
@@ -9,7 +9,7 @@ interface UpdateCheckResult {
   significance: 'major' | 'minor' | 'none';
   newUpdates: string[];
   modifiedUpdates: string[];
-  scrapeMethod?: 'playwright' | 'stagehand';
+  scrapeMethod?: 'playwright' | 'puppeteer';
 }
 
 export async function checkForUpdatesWithFallback({ 
@@ -17,9 +17,9 @@ export async function checkForUpdatesWithFallback({
 }: { 
   previousUpdates?: ScrapedContent[] 
 }): Promise<UpdateCheckResult> {
-  const result = await checkForUpdatesWithStagehand({ previousUpdates });
+  const result = await checkForUpdatesWithPuppeteer({ previousUpdates });
   return {
     ...result,
-    scrapeMethod: 'stagehand' as const
+    scrapeMethod: 'puppeteer' as const
   };
 } 

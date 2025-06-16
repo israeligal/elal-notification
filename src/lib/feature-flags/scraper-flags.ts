@@ -1,10 +1,10 @@
 interface ScraperFeatureFlags {
-  useStagehandScraper: boolean;
+  usePuppeteerScraper: boolean;
 }
 
 export function getScraperFeatureFlags(): ScraperFeatureFlags {
   return {
-    useStagehandScraper: process.env.USE_STAGEHAND_SCRAPER === 'true'
+    usePuppeteerScraper: process.env.USE_PUPPETEER_SCRAPER === 'true'
   };
 }
 
