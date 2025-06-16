@@ -26,6 +26,7 @@ export async function getBrowser() {
     "--no-zygote",
     "--disable-gpu"
   ];
+
   try {
     browser = await puppeteerCore.launch({
       args: [...chromium.args, ...args],
