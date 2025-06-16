@@ -104,7 +104,7 @@ import { getBrowser } from "@/lib/puppeteer/browser-manager";
 import type { ScrapedContent } from "@/types/notification.type";
 import { logInfo } from "@/lib/utils/logger";
 
-const ELAL_URL = 'https://www.elal.com/heb/about-elal/news/recent-updates';
+const ELAL_URL = 'https://www.elal.com/eng/about-elal/news/recent-updates';
 
 // Exact same schemas as Stagehand version
 const NewsExtractionSchema = z.object({

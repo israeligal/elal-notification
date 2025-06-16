@@ -5,6 +5,7 @@ import { getActiveSubscribers } from '@/services/subscription.service'
 import { sendUpdateNotifications } from '@/services/email-notification.service'
 import { logInfo, logError } from '@/lib/utils/logger'
 import type { ScrapedContent } from '@/types/notification.type'
+import { closeBrowser } from '@/lib/puppeteer/browser-manager'
 
 async function getPreviousUpdates({ lastCheckId }: { lastCheckId?: string }): Promise<ScrapedContent[]> {
   if (!lastCheckId) return []
@@ -173,6 +174,9 @@ export async function performMonitoringCheck(): Promise<{
       updateCount: 0,
       error: (error as Error).message
     }
+  } finally {
+    await closeBrowser()
+    logInfo('Browser closed after monitoring check')
   }
 }
 
