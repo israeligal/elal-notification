@@ -232,7 +232,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       distinctId: 'system',
       event: 'scrape_elal_updates_with_puppeteer_html_cleaned',
       properties: {
-        cleanedHtml,
+        cleanedHtmlLength: cleanedHtml.length,
         timestamp: new Date().toISOString(),
       }
     })
@@ -284,7 +284,6 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       updatedAt: update.updatedAt
     }));
 
-    // console.log('articles', articles);
     await trackEvent({
       distinctId: 'system',
       event: 'scrape_elal_updates_with_puppeteer_articles',
@@ -391,21 +390,7 @@ export async function checkForUpdatesWithPuppeteer({
       .replace('[PREVIOUS_CONTENT]', previousUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n'))
       .replace('[CURRENT_CONTENT]', currentUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n')),
   });
-
-  logInfo('AI comparison completed', { 
-    comparison: comparison.object,
-    hasChanged: comparison.object.hasChanged,
-    significance: comparison.object.significance
-  });
-
-  logInfo('DEBUG: AI comparison result', {
-    hasChanged: comparison.object.hasChanged,
-    changeDetails: comparison.object.changeDetails,
-    currentCount: currentUpdates.length,
-    previousCount: previousUpdates.length,
-    currentTitles: currentUpdates.map(u => u.title)
-  });
-
+  
   await trackEvent({
     distinctId: 'system',
     event: 'scrape_elal_updates_with_puppeteer_comparison_result',
