@@ -63,8 +63,8 @@ export async function sendUpdateNotifications({
           if (subscriber.email === 'israeligal2@gmail.com') {
             await resend.emails.send({
               from: FROM_EMAIL,
-              to: subscriber.email,
-              subject: `עדכונים חדשים מאל על | New El Al Updates - ${new Date().toLocaleDateString('he-IL')}`,
+              to: 'israeligal2@gmail.com',
+              subject: `עדכונים חדשים מאל על - ${new Date().toLocaleDateString('he-IL')}`,
               html: emailHtml,
             })
           }
@@ -117,7 +117,7 @@ export async function sendVerificationEmail({
     await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
-      subject: 'אמת את הרשמתך לעדכוני אל על | Verify your El Al updates subscription',
+      subject: 'אמת את הרשמתך לעדכוני אל על',
       html: emailHtml,
     })
 
@@ -147,7 +147,7 @@ export async function sendConfirmationEmail({
     await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
-      subject: 'הרשמה הושלמה בהצלחה! | Registration Complete - El Al Updates',
+      subject: 'הרשמה הושלמה בהצלחה!',
       html: emailHtml,
     })
 
