@@ -104,7 +104,6 @@ function cleanHtml(html: string): string {
     .replace(/\slang="[^"]*"/gi, '')
     .replace(/\sdir="[^"]*"/gi, '')
     // Clean up extra whitespace
-    .replace(/\s+/g, ' ')
     .replace(/>\s+</g, '><');
 
   return cleaned;
