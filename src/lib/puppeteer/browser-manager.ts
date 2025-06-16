@@ -27,13 +27,24 @@ export async function getBrowser() {
     "--disable-gpu"
   ];
   
-  browser = await puppeteerCore.launch({
-    args: [...chromium.args, ...args],
-    executablePath: await chromium.executablePath("https://www.dropbox.com/scl/fi/b7stjtchpnu7nphms7dd4/chromium-v137.0.0-pack.arm64.tar?rlkey=0bt7t9l1xsujbble6wzs915y7&st=bh73tkhz&dl=1"), // Use default chromium binary
-    headless: "shell", // Required for Puppeteer with v137.0.0
-    defaultViewport: viewport,
-  });
-  
+  try {
+    browser = await puppeteerCore.launch({
+      args: [...chromium.args, ...args],
+      executablePath: await chromium.executablePath("https://www.dropbox.com/scl/fi/b7stjtchpnu7nphms7dd4/chromium-v137.0.0-pack.arm64.tar?rlkey=0bt7t9l1xsujbble6wzs915y7&st=bh73tkhz&dl=1"), // Use default chromium binary
+      headless: "shell", // Required for Puppeteer with v137.0.0
+      defaultViewport: viewport,
+    });
+    
+  } catch (error) {
+    browser = await puppeteerCore.launch({
+      args: [...chromium.args, ...args],
+      executablePath: await chromium.executablePath("https://www.dropbox.com/scl/fi/b7stjtchpnu7nphms7dd4/chromium-v137.0.0-pack.arm64.tar?rlkey=0bt7t9l1xsujbble6wzs915y7&st=d9tpd52g&dl=1"), // Use default chromium binary
+      headless: "shell", // Required for Puppeteer with v137.0.0
+      defaultViewport: viewport,
+    });
+
+    
+
   return browser;
 }
 
