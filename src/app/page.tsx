@@ -1,6 +1,9 @@
 import { SubscribeForm } from '@/components/subscribe-form/SubscribeForm'
 import { AnimatedFeatures } from '@/components/layout/AnimatedFeatures'
 import { ContactForm } from '@/components/contact-form'
+import { FlightTrackingRecommendation } from '@/components/flight-tracking-recommendation/FlightTrackingRecommendation'
+import { LocalAttractionsRecommendation } from '@/components/local-attractions-recommendation/LocalAttractionsRecommendation'
+import { HealthProductsRecommendation } from '@/components/health-products-recommendation/HealthProductsRecommendation'
 import { Footer } from '@/components/layout/Footer'
 
 export default function HomePage() {
@@ -13,6 +16,12 @@ export default function HomePage() {
         <AnimatedFeatures />
 
         <ContactForm />
+
+        <FlightTrackingRecommendation />
+
+        <LocalAttractionsRecommendation />
+
+        <HealthProductsRecommendation />
       </div>
       
       <Footer />
