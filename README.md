@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🎬 Stagehand AI Integration
+
+This project now includes [Stagehand](https://stagehand.dev) for AI-powered browser automation, providing more resilient scraping of Hebrew content with natural language instructions. See [STAGEHAND_SETUP.md](./STAGEHAND_SETUP.md) for configuration details.
+
 ## Getting Started
 
 First, run the development server:

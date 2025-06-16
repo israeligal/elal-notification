@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import { logInfo, logError } from '@/lib/utils/logger'
 import type { ScrapedContent } from '@/types/notification.type'
 
-const ELAL_URL = 'https://www.elal.com/heb/about-elal/news/recent-updates'
+const ELAL_URL = 'https://www.elal.com/eng/about-elal/news/recent-updates'
 
 interface ScrapeOptions {
   timeout?: number

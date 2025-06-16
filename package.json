@@ -11,9 +11,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test:scraper": "curl http://localhost:3000/api/test/scraper"
+    "test:scraper": "curl http://localhost:3000/api/test/scraper",
+    "test:cron": "curl http://localhost:3000/api/cron/check-updates"
   },
   "dependencies": {
+    "@browserbasehq/sdk": "^2.6.0",
+    "@browserbasehq/stagehand": "^2.3.0",
     "@clerk/nextjs": "^6.22.0",
     "@hookform/resolvers": "^5.1.1",
     "@logtail/node": "^0.5.5",
@@ -40,7 +43,6 @@
     "playwright": "^1.53.0",
     "posthog-js": "^1.252.1",
     "posthog-node": "^5.1.0",
-
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.58.0",
