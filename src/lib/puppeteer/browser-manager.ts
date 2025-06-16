@@ -1,6 +1,5 @@
 import chromium from "@sparticuz/chromium-min";
 import puppeteerCore from "puppeteer-core";
-import puppeteer from "puppeteer";
 
 const chromiumPack = "https://github.com/Sparticuz/chromium/releases/download/v137.0.0/chromium-v137.0.0-pack.tar";
 
