@@ -62,6 +62,12 @@ export const scrapedContentSchema = z.object({
   content: z.string(),
   publishDate: z.string().optional(),
   url: z.string().optional(),
+  metadata: z.object({
+    category: z.string().optional(),
+    importance: z.enum(["low", "medium", "high"]).optional(),
+    extractedAt: z.string().optional(),
+    extractionMethod: z.enum(["playwright", "stagehand"]).optional(),
+  }).optional(),
 })
 export type ScrapedContent = z.infer<typeof scrapedContentSchema>
 

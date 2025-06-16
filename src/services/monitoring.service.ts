@@ -1,6 +1,6 @@
 import { desc, count } from 'drizzle-orm'
 import { db, updateChecks, updateContent, notificationLogs } from '@/lib/db/connection'
-import { checkForUpdates } from '@/services/elal-scraper.service'
+import { checkForUpdatesWithFallback } from '@/services/scraper-factory.service'
 import { getActiveSubscribers } from '@/services/subscription.service'
 import { sendUpdateNotifications } from '@/services/email-notification.service'
 import { logInfo, logError } from '@/lib/utils/logger'
@@ -24,8 +24,8 @@ export async function performMonitoringCheck(): Promise<{
 
     const previousHash = lastCheck.length > 0 ? lastCheck[0].contentHash : undefined
 
-    // Check for updates
-    const { hasChanged, contentHash, updates, changeDetails } = await checkForUpdates({ 
+    // Check for updates using scraper factory (with feature flags)
+    const { hasChanged, contentHash, updates, changeDetails, scrapeMethod } = await checkForUpdatesWithFallback({ 
       previousHash 
     })
 
@@ -43,7 +43,10 @@ export async function performMonitoringCheck(): Promise<{
 
     // Store update content if there are changes
     if (hasChanged && updates.length > 0) {
-      logInfo('Updates detected, storing content', { updateCount: updates.length })
+      logInfo('Updates detected, storing content', { 
+        updateCount: updates.length,
+        scrapeMethod: scrapeMethod || 'unknown'
+      })
 
       // Store each update
       await Promise.all(
@@ -84,7 +87,8 @@ export async function performMonitoringCheck(): Promise<{
         logInfo('Monitoring check completed with notifications', {
           updateCount: updates.length,
           notificationsSent: sent,
-          notificationsFailed: failed
+          notificationsFailed: failed,
+          scrapeMethod: scrapeMethod || 'unknown'
         })
 
         return {
