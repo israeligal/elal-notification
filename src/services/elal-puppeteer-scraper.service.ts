@@ -6,6 +6,7 @@ import { getBrowser } from "@/lib/puppeteer/browser-manager";
 import type { ScrapedContent } from "@/types/notification.type";
 import { logInfo } from "@/lib/utils/logger";
 import posthog from "posthog-js";
+import { trackEvent } from "@/lib/utils/analytics";
 
 const ELAL_URL = 'https://www.elal.com/eng/about-elal/news/recent-updates';
 
@@ -143,7 +144,16 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     logInfo('Cleaning HTML content', { originalLength: rawHtml.length });
     const cleanedHtml = cleanHtml(rawHtml);
     logInfo('HTML cleaned', { cleanedLength: cleanedHtml.length });
-    posthog.capture('scrape_elal_updates_with_puppeteer_html_cleaned', { cleanedHtml });
+    
+    await trackEvent({
+      distinctId: 'system',
+      event: 'scrape_elal_updates_with_puppeteer_html_cleaned',
+      properties: {
+        cleanedLength: cleanedHtml.length,
+        originalLength: rawHtml.length,
+        timestamp: new Date().toISOString(),
+      }
+    })
 
 
     // Use AI SDK with Anthropic to extract news points (exact same as Stagehand)
@@ -156,7 +166,14 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       prompt: EXTRACTION_PROMPT + cleanedHtml,
     });
 
-    posthog.capture('scrape_elal_updates_with_puppeteer_extraction_result', { result: result.object });
+    await trackEvent({
+      distinctId: 'system',
+      event: 'scrape_elal_updates_with_puppeteer_extraction_result',
+      properties: {
+        result: result.object,
+        timestamp: new Date().toISOString(),
+      }
+    })
 
     logInfo('AI extraction completed', { extractedCount: result.object.updates.length });
     logInfo('AI extraction result', { result: result.object });
@@ -167,7 +184,15 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
         hasActualUpdates: result.object.hasActualUpdates,
         updatesCount: result.object.updates.length 
       });
-      posthog.capture('scrape_elal_updates_with_puppeteer_extraction_no_updates');
+      await trackEvent({
+        distinctId: 'system',
+        event: 'scrape_elal_updates_with_puppeteer_extraction_no_updates',
+        properties: {
+          hasActualUpdates: result.object.hasActualUpdates,
+          updatesCount: result.object.updates.length,
+          timestamp: new Date().toISOString(),
+        }
+      })
       return [];
     }
 
@@ -180,7 +205,14 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     }));
 
     console.log('articles', articles);
-    posthog.capture('scrape_elal_updates_with_puppeteer_articles', { articles });
+    await trackEvent({
+      distinctId: 'system',
+      event: 'scrape_elal_updates_with_puppeteer_articles',
+      properties: {
+        articles: articles,
+        timestamp: new Date().toISOString(),
+      }
+    })
 
 
     logInfo('Successfully extracted articles using AI SDK', { count: articles.length });
