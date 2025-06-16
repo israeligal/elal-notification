@@ -48,10 +48,10 @@ importers:
         specifier: ^0.1.5
         version: 0.1.5(react@19.1.0)
       '@sparticuz/chromium':
-        specifier: ^137.0.0
+        specifier: 137.0.0
         version: 137.0.0
       '@sparticuz/chromium-min':
-        specifier: ^137.0.0
+        specifier: 137.0.0
         version: 137.0.0
       '@vercel/analytics':
         specifier: ^1.5.0
@@ -99,10 +99,10 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
       puppeteer:
-        specifier: ^24.10.1
+        specifier: 24.10.1
         version: 24.10.1(typescript@5.8.3)
       puppeteer-core:
-        specifier: ^24.10.1
+        specifier: 24.10.1
         version: 24.10.1
       react:
         specifier: ^19.0.0
