@@ -6,18 +6,20 @@ interface UpdateCheckResult {
   contentHash: string;
   updates: ScrapedContent[];
   changeDetails?: string;
+  significance: 'major' | 'minor' | 'none';
+  newUpdates: string[];
+  modifiedUpdates: string[];
   scrapeMethod?: 'playwright' | 'stagehand';
 }
 
 export async function checkForUpdatesWithFallback({ 
-  previousHash 
+  previousUpdates = [] 
 }: { 
-  previousHash?: string 
-} = {}): Promise<UpdateCheckResult> {
-
-  const result = await checkForUpdatesWithStagehand({ previousHash });
+  previousUpdates?: ScrapedContent[] 
+}): Promise<UpdateCheckResult> {
+  const result = await checkForUpdatesWithStagehand({ previousUpdates });
   return {
     ...result,
-    scrapeMethod: 'stagehand'
+    scrapeMethod: 'stagehand' as const
   };
 } 
