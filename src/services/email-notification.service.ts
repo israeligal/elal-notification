@@ -61,14 +61,12 @@ export async function sendUpdateNotifications({
           }))
 
           if (process.env.SEND_EMAIL_ENABLED) {
-            if (subscriber.email === 'israeligal2@gmail.com') {
               await resend.emails.send({
                 from: FROM_EMAIL,
-                to: 'israeligal2@gmail.com',
+                to: subscriber.email,
                 subject: `עדכונים חדשים מאל על - ${new Date().toLocaleDateString('he-IL')}`,
                 html: emailHtml,
               })
-            }
           }
 
           results.sent++
