@@ -5,6 +5,7 @@ import { UpdateNotificationEmail } from '@/components/emails/UpdateNotificationE
 import { VerificationEmail } from '@/components/emails/VerificationEmail'
 import { ConfirmationEmail } from '@/components/emails/ConfirmationEmail'
 import type { ScrapedContent, Subscriber } from '@/types/notification.type'
+import { trackEvent } from '@/lib/utils/analytics'
 
 if (!process.env.RESEND_API_KEY) {
   throw new Error('RESEND_API_KEY environment variable is required')
@@ -67,6 +68,15 @@ export async function sendUpdateNotifications({
                 subject: `עדכונים חדשים מאל על - ${new Date().toLocaleDateString('he-IL')}`,
                 html: emailHtml,
               })
+          } else {
+            await trackEvent({
+              distinctId: 'system',
+              event: 'scrape_elal_updates_with_puppeteer_html',
+              properties: {
+                disabled: true,
+                timestamp: new Date().toISOString(),
+              }
+            })
           }
 
           results.sent++
