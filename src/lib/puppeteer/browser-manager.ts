@@ -35,15 +35,25 @@ export async function getBrowser() {
       defaultViewport: viewport,
     });
     
-  } catch (error) {
+  } catch {
     browser = await puppeteerCore.launch({
       args: [...chromium.args, ...args],
       executablePath: await chromium.executablePath("https://www.dropbox.com/scl/fi/b7stjtchpnu7nphms7dd4/chromium-v137.0.0-pack.arm64.tar?rlkey=0bt7t9l1xsujbble6wzs915y7&st=d9tpd52g&dl=1"), // Use default chromium binary
       headless: "shell", // Required for Puppeteer with v137.0.0
       defaultViewport: viewport,
     });
+  }
 
     
 
   return browser;
 }
+
+export async function closeBrowser() {
+  if (browser) {
+    await browser.close();
+    browser = null;
+  }
+}
+
+ 
