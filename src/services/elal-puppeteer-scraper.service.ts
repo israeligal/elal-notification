@@ -85,9 +85,29 @@ function cleanHtml(html: string): string {
     .replace(/<base\b[^>]*>/gi, '')
     // Remove HTML comments
     .replace(/<!--[\s\S]*?-->/g, '')
+    // Remove entire structural sections (navigation, header, footer)
+    .replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '')
+    .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '')
+    .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '')
+    // Remove Angular component wrappers
+    .replace(/<app-[^>]*>/gi, '')
+    .replace(/<\/app-[^>]*>/gi, '')
+    // Remove form elements and interactive controls
+    .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
+    .replace(/<button\b[^<]*(?:(?!<\/button>)<[^<]*)*<\/button>/gi, '')
+    .replace(/<input\b[^>]*>/gi, '')
+    .replace(/<select\b[^<]*(?:(?!<\/select>)<[^<]*)*<\/select>/gi, '')
+    .replace(/<textarea\b[^<]*(?:(?!<\/textarea>)<[^<]*)*<\/textarea>/gi, '')
     // Remove common tracking/analytics elements
     .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
     .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '')
+    // Remove tracking pixels and small images
+    .replace(/<img[^>]*width="1"[^>]*>/gi, '')
+    .replace(/<img[^>]*height="1"[^>]*>/gi, '')
+    // Remove breadcrumb navigation
+    .replace(/<[^>]*bread[^>]*>.*?<\/[^>]*>/gi, '')
+    // Remove social media sections
+    .replace(/<[^>]*social[^>]*>.*?<\/[^>]*>/gi, '')
     // Remove CSS classes and IDs to reduce noise
     .replace(/\s(class|id)="[^"]*"/gi, '')
     // Remove inline styles
@@ -97,10 +117,12 @@ function cleanHtml(html: string): string {
     // Remove angular attributes (with or without values)
     .replace(/\s_ng\S+/gi, '')
     .replace(/\sng-\S+/gi, '')
-    // Remove aria-label and other accessibility attributes that might have noise
+    // Remove accessibility-specific attributes
+    .replace(/\su1st-[^=>\s]+(?:="[^"]*")?/gi, '')
     .replace(/\saria-[^=]*="[^"]*"/gi, '')
     .replace(/\srole="[^"]*"/gi, '')
     .replace(/\stabindex="[^"]*"/gi, '')
+    .replace(/\saccesskey="[^"]*"/gi, '')
     // Remove event handlers
     .replace(/\son[a-z]+="[^"]*"/gi, '')
     // Remove security and loading attributes
@@ -110,10 +132,60 @@ function cleanHtml(html: string): string {
     .replace(/\sasync\b/gi, '')
     .replace(/\scharset="[^"]*"/gi, '')
     .replace(/\stype="[^"]*"/gi, '')
+    .replace(/\sloading="[^"]*"/gi, '')
+    .replace(/\srel="[^"]*"/gi, '')
     // Remove common framework attributes
     .replace(/\sdirection="[^"]*"/gi, '')
     .replace(/\slang="[^"]*"/gi, '')
     .replace(/\sdir="[^"]*"/gi, '')
+    .replace(/\starget="[^"]*"/gi, '')
+    // Remove Angular Material and other framework attributes
+    .replace(/\smat[^=>\s]+(?:="[^"]*")?/gi, '')
+    .replace(/\sformcontrolname="[^"]*"/gi, '')
+    .replace(/\snovalidate="[^"]*"/gi, '')
+    .replace(/\sappearance="[^"]*"/gi, '')
+    .replace(/\srequired="[^"]*"/gi, '')
+    .replace(/\sframeborder="[^"]*"/gi, '')
+    .replace(/\sscrolling="[^"]*"/gi, '')
+    // Remove cookie/privacy elements (very safe - never content)
+    .replace(/<[^>]*cookie[^>]*>.*?<\/[^>]*>/gi, '')
+    .replace(/<[^>]*privacy[^>]*>.*?<\/[^>]*>/gi, '')
+    .replace(/<[^>]*consent[^>]*>.*?<\/[^>]*>/gi, '')
+    // Remove specific cookie consent text patterns
+    .replace(/<h2[^>]*>Privacy Preference Center<\/h2>/gi, '')
+    .replace(/<h3[^>]*>\s*Manage Consent Preferences\s*<\/h3>/gi, '')
+    .replace(/<h4[^>]*>(Performance|Social Media|Strictly Necessary|Functional|Targeting)\s*Cookies<\/h4>/gi, '')
+    .replace(/<span[^>]*>(Performance|Social Media|Strictly Necessary|Functional|Targeting)\s*Cookies<\/span>/gi, '')
+    .replace(/<h3[^>]*>Cookie List<\/h3>/gi, '')
+    // Remove long cookie/privacy related paragraphs (require 3+ key terms)
+    .replace(/<p[^>]*>.*?cookies.*?browser.*?website.*?<\/p>/gi, '')
+    .replace(/<p[^>]*>.*?cookies.*?tracking.*?site.*?<\/p>/gi, '')
+    .replace(/<p[^>]*>.*?tracking.*?website.*?experience.*?<\/p>/gi, '')
+    .replace(/<p[^>]*>.*?privacy.*?information.*?browser.*?<\/p>/gi, '')
+    .replace(/<p[^>]*>.*?cookies.*?preferences.*?device.*?<\/p>/gi, '')
+    .replace(/<div[^>]*>.*?cookies and other tracking tools.*?<\/div>/gi, '')
+    .replace(/<div[^>]*>.*?Privacy Preference Center.*?<\/div>/gi, '')
+    // Remove OneTrust cookie consent elements
+    .replace(/<label[^>]*for="ot-group-id[^"]*"[^>]*>.*?<\/label>/gi, '')
+    .replace(/<div[^>]*>Always Active<\/div>/gi, '')
+    .replace(/<span[^>]*>Consent<\/span>/gi, '')
+    .replace(/<span[^>]*>Leg\.Interest<\/span>/gi, '')
+    .replace(/<label[^>]*for="select-all-[^"]*"[^>]*>.*?<\/label>/gi, '')
+    .replace(/<label[^>]*for="chkbox-id"[^>]*>.*?<\/label>/gi, '')
+    .replace(/<span[^>]*>checkbox label<\/span>/gi, '')
+    .replace(/<span[^>]*>label<\/span>/gi, '')
+    // Remove entire sections containing cookie consent patterns
+    .replace(/<section[^>]*>.*?ot-group-id.*?<\/section>/gi, '')
+    .replace(/<section[^>]*>.*?Consent.*?Leg\.Interest.*?<\/section>/gi, '')
+    .replace(/<div[^>]*>.*?When you visit any website.*?services we are able to offer.*?<\/div>/gi, '')
+    // Remove accessibility menu elements
+    .replace(/<a[^>]*title="[^"]*accessibility[^"]*"[^>]*>.*?<\/a>/gi, '')
+    .replace(/<div[^>]*>.*?Click for accessibility menu.*?<\/div>/gi, '')
+    // Remove empty elements (safe - no content loss)
+    .replace(/<(div|span|section)[^>]*>\s*<\/\1>/gi, '')
+    // Clean up whitespace (safe formatting)
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^\s+|\s+$/gm, '')
 
   return cleaned;
 }
@@ -144,7 +216,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     // Wait for page to load completely (same as Stagehand)
     await new Promise(resolve => setTimeout(resolve, 5000));
     
-    logInfo('Getting raw HTML content from page');
+    // logInfo('Getting raw HTML content from page');
     const rawHtml = await page.content();
     await trackEvent({
       distinctId: 'system',
@@ -155,27 +227,22 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       }
     })
     
-    logInfo('Cleaning HTML content', { originalLength: rawHtml.length });
     const cleanedHtml = cleanHtml(rawHtml);
-    logInfo('HTML cleaned', { cleanedLength: cleanedHtml.length });
-    
+
     await trackEvent({
       distinctId: 'system',
       event: 'scrape_elal_updates_with_puppeteer_html_cleaned',
       properties: {
-        cleanedLength: cleanedHtml.length,
-        originalLength: rawHtml.length,
+        cleanedHtml,
         timestamp: new Date().toISOString(),
       }
     })
-
-
     // Use AI SDK with Anthropic to extract news points (exact same as Stagehand)
-    logInfo('Using AI SDK with Anthropic to extract Hebrew news updates');
+    // logInfo('Using AI SDK with Anthropic to extract Hebrew news updates');
 
     posthog.capture('scrape_elal_updates_with_puppeteer_extraction_start');
     const result = await generateObject({
-      model: anthropic('claude-3-5-sonnet-latest'),
+      model: anthropic('claude-3-5-haiku-latest'),
       schema: NewsExtractionSchema,
       prompt: EXTRACTION_PROMPT + cleanedHtml,
     });
@@ -189,15 +256,15 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       }
     })
 
-    logInfo('AI extraction completed', { extractedCount: result.object.updates.length });
-    logInfo('AI extraction result', { result: result.object });
+    // logInfo('AI extraction completed', { extractedCount: result.object.updates.length });
+    // logInfo('AI extraction result', { result: result.object });
 
     // Check if AI actually found meaningful updates
     if (!result.object.hasActualUpdates || result.object.updates.length === 0) {
-      logInfo('No meaningful updates found by AI extraction', { 
-        hasActualUpdates: result.object.hasActualUpdates,
-        updatesCount: result.object.updates.length 
-      });
+      // logInfo('No meaningful updates found by AI extraction', { 
+      //   hasActualUpdates: result.object.hasActualUpdates,
+      //   updatesCount: result.object.updates.length 
+      // });
       await trackEvent({
         distinctId: 'system',
         event: 'scrape_elal_updates_with_puppeteer_extraction_no_updates',
@@ -218,7 +285,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       updatedAt: update.updatedAt
     }));
 
-    console.log('articles', articles);
+    // console.log('articles', articles);
     await trackEvent({
       distinctId: 'system',
       event: 'scrape_elal_updates_with_puppeteer_articles',
@@ -229,7 +296,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     })
 
 
-    logInfo('Successfully extracted articles using AI SDK', { count: articles.length });
+    // logInfo('Successfully extracted articles using AI SDK', { count: articles.length });
     return articles;
 
   } catch (error) {
