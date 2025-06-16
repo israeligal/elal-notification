@@ -175,7 +175,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
 
     posthog.capture('scrape_elal_updates_with_puppeteer_extraction_start');
     const result = await generateObject({
-      model: anthropic('claude-3-5-haiku-latest'),
+      model: anthropic('claude-3-5-sonnet-latest'),
       schema: NewsExtractionSchema,
       prompt: EXTRACTION_PROMPT + cleanedHtml,
     });
@@ -299,7 +299,7 @@ export async function checkForUpdatesWithPuppeteer({
   });
   
   const comparison = await generateObject({
-    model: anthropic('claude-3-5-haiku-latest'),
+    model: anthropic('claude-3-5-sonnet-latest'),
     schema: UpdateComparisonSchema,
     prompt: COMPARISON_PROMPT
       .replace('[PREVIOUS_CONTENT]', previousUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n'))
