@@ -1,12 +1,12 @@
 import { desc, count, eq } from 'drizzle-orm'
 import { db, updateChecks, updateContent, notificationLogs } from '@/lib/db/connection'
-import { checkForUpdatesWithFallback } from '@/services/scraper-factory.service'
 import { getActiveSubscribers } from '@/services/subscription.service'
 import { sendUpdateNotifications } from '@/services/email-notification.service'
 import { logInfo, logError } from '@/lib/utils/logger'
 import type { ScrapedContent } from '@/types/notification.type'
 import { closeBrowser } from '@/lib/puppeteer/browser-manager'
 import {trackEvent} from "@/lib/utils/analytics";
+import {checkForUpdatesWithPuppeteer} from "@/services/elal-puppeteer-scraper.service";
 
 async function getPreviousUpdates({ lastCheckId }: { lastCheckId?: string }): Promise<ScrapedContent[]> {
   if (!lastCheckId) return []
@@ -40,11 +40,15 @@ export async function performMonitoringCheck(): Promise<{
     logInfo('Starting monitoring check')
 
     // Get the last check's ID for retrieving previous updates
+    // where has_changed = true
     const lastCheck = await db
       .select()
       .from(updateChecks)
+      .where(eq(updateChecks.hasChanged, true))
       .orderBy(desc(updateChecks.checkTimestamp))
       .limit(1)
+    
+    console.log(lastCheck)
 
     // Get previous updates instead of just hash
     const previousUpdates = await getPreviousUpdates({ lastCheckId: lastCheck[0]?.id })
@@ -55,7 +59,7 @@ export async function performMonitoringCheck(): Promise<{
     })
 
     // Check for updates using scraper factory (with feature flags)
-    const { hasChanged, contentHash, updates, changeDetails, scrapeMethod, significance } = await checkForUpdatesWithFallback({ 
+    const { hasChanged, contentHash, updates, changeDetails, significance } = await checkForUpdatesWithPuppeteer({ 
       previousUpdates 
     })
     
@@ -66,7 +70,6 @@ export async function performMonitoringCheck(): Promise<{
         properties: {
           hasChanged,
           changeDetails,
-          scrapeMethod,
           significance,
           previousUpdates,
           timestamp: new Date().toISOString(),
@@ -99,7 +102,6 @@ export async function performMonitoringCheck(): Promise<{
     if (hasChanged && updates.length > 0) {
       logInfo('Updates detected, storing content', { 
         updateCount: updates.length,
-        scrapeMethod: scrapeMethod || 'unknown'
       })
 
       // Store each update
@@ -143,7 +145,6 @@ export async function performMonitoringCheck(): Promise<{
             updateCount: updates.length,
             notificationsSent: sent,
             notificationsFailed: failed,
-            scrapeMethod: scrapeMethod || 'unknown'
           })
 
           return {
