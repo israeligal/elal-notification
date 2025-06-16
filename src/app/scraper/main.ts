@@ -1,18 +1,18 @@
 "use server";
 
-import { checkForUpdatesWithStagehand } from "@/services/elal-stagehand-scraper.service";
+import { checkForUpdatesWithPuppeteer } from "@/services/elal-puppeteer-scraper.service";
 import { logInfo, logError } from "@/lib/utils/logger";
 import type { ScrapedContent } from "@/types/notification.type";
 
-export async function runStagehandScraper({ 
+export async function runPuppeteerScraper({ 
   previousUpdates = [] 
 }: { 
   previousUpdates?: ScrapedContent[] 
 } = {}) {
   try {
-    const result = await checkForUpdatesWithStagehand({ previousUpdates });
+    const result = await checkForUpdatesWithPuppeteer({ previousUpdates });
     
-    logInfo('Stagehand scraping and update check completed', { 
+    logInfo('Puppeteer scraping completed', { 
       hasChanged: result.hasChanged,
       updateCount: result.updates.length,
       significance: result.significance,
@@ -24,7 +24,7 @@ export async function runStagehandScraper({
       success: true,
       hasChanged: result.hasChanged,
       updateCount: result.updates.length,
-      updates: result.updates.slice(0, 3), // First 3 for preview
+      updates: result.updates.slice(0, 3),
       allUpdates: result.updates,
       changeDetails: result.changeDetails,
       significance: result.significance,
@@ -34,7 +34,7 @@ export async function runStagehandScraper({
       timestamp: new Date().toISOString()
     };
   } catch (error) {
-    logError('Stagehand scraping failed', error as Error);
+    logError('Puppeteer scraping failed', error as Error);
     throw error;
   }
 } 

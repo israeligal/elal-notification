@@ -1,14 +1,48 @@
-import { Stagehand } from "@browserbasehq/stagehand";
 import { z } from "zod";
 import { createHash } from "crypto";
 import { generateObject } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
-import { createStagehandConfig } from "@/lib/stagehand/config";
+import { getBrowser } from "@/lib/puppeteer/browser-manager";
 import type { ScrapedContent } from "@/types/notification.type";
 import { logInfo } from "@/lib/utils/logger";
 
 const ELAL_URL = 'https://www.elal.com/heb/about-elal/news/recent-updates';
 
+// AI Prompts
+const EXTRACTION_PROMPT = `
+Extract Hebrew news updates from this El Al page HTML. Focus on security updates, flight changes, and announcements. Create short titles and include full content in Hebrew.
+
+HTML Content:
+`;
+
+const COMPARISON_PROMPT = `
+Compare Hebrew El Al updates for SIGNIFICANT changes only.
+
+ONLY mark as changed if there are:
+- New flight cancellation dates
+- New destinations affected  
+- New security restrictions
+- New policies or procedures
+- Actually NEW information
+
+IGNORE:
+- Reordering of same items
+- Minor wording changes
+- Same content with different titles
+- Formatting differences
+
+If the core flight dates, destinations, and policies are identical, mark as hasChanged: false.
+
+PREVIOUS Updates:
+[PREVIOUS_CONTENT]
+
+CURRENT Updates:  
+[CURRENT_CONTENT]
+
+Be very strict - only real policy/date/destination changes matter.
+`;
+
+// Exact same schemas as Stagehand version
 const NewsExtractionSchema = z.object({
   updates: z.array(z.object({
     title: z.string().describe('A short title summarizing the update in Hebrew'),
@@ -26,8 +60,8 @@ const UpdateComparisonSchema = z.object({
   significance: z.enum(['major', 'minor', 'none']).describe('Significance level of the changes')
 });
 
+// Exact same HTML cleaning function from Stagehand version
 function cleanHtml(html: string): string {
-  // Remove scripts, styles, and other unnecessary elements
   const cleaned = html
     // Remove script tags and their content
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -59,18 +93,23 @@ function cleanHtml(html: string): string {
   return cleaned;
 }
 
-export async function scrapeElAlUpdatesWithStagehand(): Promise<ScrapedContent[]> {
-  const stagehand = new Stagehand(createStagehandConfig());
+export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]> {
+  const browser = await getBrowser();
+  const page = await browser.newPage();
   
   try {
-    await stagehand.init();
-    const page = stagehand.page;
-
-    logInfo('Navigating to El Al updates page', { url: ELAL_URL });
-    await page.goto(ELAL_URL);
+    // Set user agent and viewport for better compatibility
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
     
-    // Wait for page to load completely
-    await page.waitForTimeout(5000);
+    logInfo('Navigating to El Al updates page', { url: ELAL_URL });
+    await page.goto(ELAL_URL, { 
+      waitUntil: 'domcontentloaded',
+      timeout: 30000 
+    });
+    
+    // Wait for page to load completely (same as Stagehand)
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
     logInfo('Getting raw HTML content from page');
     const rawHtml = await page.content();
@@ -79,35 +118,13 @@ export async function scrapeElAlUpdatesWithStagehand(): Promise<ScrapedContent[]
     const cleanedHtml = cleanHtml(rawHtml);
     logInfo('HTML cleaned', { cleanedLength: cleanedHtml.length });
 
-    // Use AI SDK with Anthropic to extract news points
+    // Use AI SDK with Anthropic to extract news points (exact same as Stagehand)
     logInfo('Using AI SDK with Anthropic to extract Hebrew news updates');
-
     
     const result = await generateObject({
-      model: anthropic('claude-3-haiku-20240307'),
+      model: anthropic('claude-3-5-haiku-latest'),
       schema: NewsExtractionSchema,
-      prompt: `
-        You are analyzing the HTML content of El Al Airlines' Hebrew news/updates page.
-        
-        The page contains security updates and flight information in Hebrew.
-        
-        Please extract all the news updates/bullet points from this HTML content. Focus on:
-        1. Hebrew text content that represents news updates or announcements
-        2. Bullet points (li elements) containing security updates
-        3. Information about flight cancellations, changes, or important announcements
-        4. Date/time information if available
-        
-        For each update:
-        - Create a short, descriptive title in Hebrew (10-15 words max)
-        - Include the full content in Hebrew
-        - Extract any date/time information if present
-        
-        Ignore navigation menus, footers, headers, and promotional content.
-        Focus only on the main news content.
-        
-        HTML Content:
-        ${cleanedHtml}
-      `,
+      prompt: EXTRACTION_PROMPT + cleanedHtml,
     });
 
     logInfo('AI extraction completed', { extractedCount: result.object.updates.length });
@@ -126,24 +143,24 @@ export async function scrapeElAlUpdatesWithStagehand(): Promise<ScrapedContent[]
     logInfo('Error during AI-powered scraping', { error: (error as Error).message });
     throw error;
   } finally {
-    await stagehand.close();
+    await page.close();
   }
 }
 
-export async function checkForUpdatesWithStagehand({ 
+export async function checkForUpdatesWithPuppeteer({ 
   previousUpdates = [] 
 }: { 
   previousUpdates?: ScrapedContent[] 
 } = {}) {
-  const currentUpdates = await scrapeElAlUpdatesWithStagehand();
+  const currentUpdates = await scrapeElAlUpdatesWithPuppeteer();
   
-  const isFirstRun = previousUpdates.length === 0
+  const isFirstRun = previousUpdates.length === 0;
 
   const contentHash = createHash('sha256')
     .update(JSON.stringify(currentUpdates.map(({ title, content }) => ({ title, content: content.substring(0, 200) }))))
     .digest('hex');
 
-  // For first run, just return the updates without AI comparison
+  // For first run, just return the updates without AI comparison (exact same logic)
   if (isFirstRun) {
     logInfo('First run - returning updates without comparison', { 
       currentCount: currentUpdates.length
@@ -160,35 +177,18 @@ export async function checkForUpdatesWithStagehand({
     };
   }
 
-  // Use AI to compare with previous updates
+  // Use AI to compare with previous updates (exact same logic)
   logInfo('Using AI to compare current updates with previous updates', { 
     currentCount: currentUpdates.length,
     previousCount: previousUpdates.length
   });
   
   const comparison = await generateObject({
-    model: anthropic('claude-3-haiku-20240307'),
+    model: anthropic('claude-3-5-haiku-latest'),
     schema: UpdateComparisonSchema,
-    prompt: `
-      You are analyzing Hebrew news updates from El Al Airlines.
-      
-      Compare previous with current updates for meaningful changes.
-      Focus on: new flights affected, security changes, date changes, new restrictions.
-      Ignore: minor wording, formatting, reordering.
-      
-      Set significance levels:
-      - 'major': New flight cancellations, security updates, policy changes, new restrictions
-      - 'minor': Small text changes, date formatting, minor clarifications
-      - 'none': No meaningful changes
-      
-      PREVIOUS Updates:
-      ${previousUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n')}
-      
-      CURRENT Updates:
-      ${currentUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n')}
-      
-      Respond in Hebrew for changeDetails.
-    `,
+    prompt: COMPARISON_PROMPT
+      .replace('[PREVIOUS_CONTENT]', previousUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n'))
+      .replace('[CURRENT_CONTENT]', currentUpdates.map((update, i) => `${i + 1}. ${update.title}\n   ${update.content}`).join('\n\n')),
   });
 
   logInfo('AI comparison completed', { 
