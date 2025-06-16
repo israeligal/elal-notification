@@ -9,9 +9,8 @@ let browser: any = null; // eslint-disable-line @typescript-eslint/no-explicit-a
 export async function getBrowser() {
   if (browser) return browser;
 
-  const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENVIRONMENT === "production";
-  
-  // Default viewport as recommended in v137.0.0 release notes
+  // Always use Sparticuz Chromium for consistency
+  // This ensures we use the same Chrome version in all environments
   const viewport = {
     deviceScaleFactor: 1,
     hasTouch: false,
@@ -31,20 +30,13 @@ export async function getBrowser() {
     "--disable-gpu"
   ];
   
-  if (isProduction) {
-    browser = await puppeteerCore.launch({
-      args: [...chromium.args, ...args],
-      executablePath: await chromium.executablePath(chromiumPack),
-      headless: "shell", // Required for Puppeteer with v137.0.0
-      defaultViewport: viewport,
-    });
-  } else {
-    browser = await puppeteer.launch({
-      args,
-      headless: true,
-      defaultViewport: viewport,
-    });
-  }
+  browser = await puppeteerCore.launch({
+    args: [...chromium.args, ...args],
+    executablePath: await chromium.executablePath(chromiumPack),
+    headless: "shell", // Required for Puppeteer with v137.0.0
+    defaultViewport: viewport,
+  });
+  
   return browser;
 }
 
