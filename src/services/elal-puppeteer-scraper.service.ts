@@ -71,6 +71,7 @@ function cleanHtml(html: string): string {
     .replace(/<link\b[^>]*>/gi, '')
     .replace(/<title\b[^<]*(?:(?!<\/title>)<[^<]*)*<\/title>/gi, '')
     .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '')
+    .replace(/<base\b[^>]*>/gi, '')
     // Remove HTML comments
     .replace(/<!--[\s\S]*?-->/g, '')
     // Remove common tracking/analytics elements
@@ -91,6 +92,17 @@ function cleanHtml(html: string): string {
     .replace(/\stabindex="[^"]*"/gi, '')
     // Remove event handlers
     .replace(/\son[a-z]+="[^"]*"/gi, '')
+    // Remove security and loading attributes
+    .replace(/\scrossorigin="[^"]*"/gi, '')
+    .replace(/\sintegrity="[^"]*"/gi, '')
+    .replace(/\sasync="[^"]*"/gi, '')
+    .replace(/\sasync\b/gi, '')
+    .replace(/\scharset="[^"]*"/gi, '')
+    .replace(/\stype="[^"]*"/gi, '')
+    // Remove common framework attributes
+    .replace(/\sdirection="[^"]*"/gi, '')
+    .replace(/\slang="[^"]*"/gi, '')
+    .replace(/\sdir="[^"]*"/gi, '')
     // Clean up extra whitespace
     .replace(/\s+/g, ' ')
     .replace(/>\s+</g, '><');
