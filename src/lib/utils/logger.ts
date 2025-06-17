@@ -7,9 +7,17 @@ const isProduction = process.env.NODE_ENV === 'production'
 const logtail = process.env.LOGTAIL_TOKEN 
   ? new Logtail(process.env.LOGTAIL_TOKEN, {
     sendLogsToConsoleOutput: !isProduction,
+    sendLogsToBetterStack: isProduction,
       endpoint: process.env.LOGTAIL_SOURCE || 's1349170.eu-nbg-2.betterstackdata.com',
     })
   : null
+
+console.log('logtail', logtail)
+
+console.log('token set', process.env.LOGTAIL_TOKEN  || 'not set')
+console.log('source set', process.env.LOGTAIL_SOURCE || 'not set')
+console.log('isProduction', isProduction)
+
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug'
 
