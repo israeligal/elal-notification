@@ -4,7 +4,7 @@ import { logger } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
 
 
-export const maxDuration = 300;
+export const maxDuration = 500;
 
 export async function GET(request: NextRequest) {
   try {
