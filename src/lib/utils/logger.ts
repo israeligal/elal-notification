@@ -1,11 +1,11 @@
 import { Logtail } from '@logtail/node';
 
-const { NODE_ENV, LOGTAIL_SOURCE_TOKEN } = process.env;
+const { NODE_ENV, LOGTAIL_TOKEN } = process.env;
 
 const isFullLogger = NODE_ENV === 'production';
 
 // Create the Logtail instance for production
-const logtail = new Logtail(LOGTAIL_SOURCE_TOKEN ?? '', {
+const logtail = new Logtail(LOGTAIL_TOKEN ?? '', {
   sendLogsToConsoleOutput: !isFullLogger, // We'll handle console output ourselves
   endpoint: 'https://s1349170.eu-nbg-2.betterstackdata.com',
 });
