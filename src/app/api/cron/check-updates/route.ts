@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { performMonitoringCheck } from '@/services/monitoring.service'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
 
 export async function GET(request: NextRequest) {
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET
 
     if (!cronSecret) {
-      logError('CRON_SECRET not configured')
+      logger.error('CRON_SECRET not configured')
       return NextResponse.json(
         { error: 'Cron job not properly configured' },
         { status: 500 }
@@ -18,19 +18,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
-      logError('Unauthorized cron job access attempt')
+      logger.error('Unauthorized cron job access attempt')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    logInfo('Starting scheduled monitoring check')
+    logger.info('Starting scheduled monitoring check')
 
     const result = await performMonitoringCheck()
 
     if (result.success) {
-      logInfo('Scheduled monitoring check completed successfully', result)
+      logger.info('Scheduled monitoring check completed successfully', result)
       
       // Track successful monitoring check
       await trackEvent({
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         ...result
       })
     } else {
-      logError('Scheduled monitoring check failed', new Error(result.error))
+      logger.error('Scheduled monitoring check failed', { error: result.error })
       
       // Track failed monitoring check
       await trackEvent({
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    logError('Cron job endpoint failed', error as Error)
+    logger.error('Cron job endpoint failed', error as Error)
     
     // Track cron job endpoint failure
     await trackEvent({

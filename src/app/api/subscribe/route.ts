@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSubscription } from '@/services/subscription.service'
 import { sendVerificationEmail } from '@/services/email-notification.service'
 import { subscribeRequestSchema } from '@/types/notification.type'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
 
 export async function POST(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const { email } = validation.data
 
-    logInfo('Processing subscription request', { email })
+    logger.info('Processing subscription request', { email })
 
     // Track subscription attempt
     await trackEvent({
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // If already verified (reactivated verified user), no email needed
     if (!verificationToken) {
-      logInfo('Reactivated already verified subscription', {
+      logger.info('Reactivated already verified subscription', {
         email,
         subscriberId: subscriber.id
       })
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendVerificationEmail({ email, verificationToken })
       
-      logInfo('Subscription created and verification email sent', { 
+      logger.info('Subscription created and verification email sent', { 
         email,
         subscriberId: subscriber.id 
       })
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       })
 
     } catch (emailError) {
-      logError('Failed to send verification email', emailError as Error, { email })
+      logger.error('Failed to send verification email', { email, error: emailError })
       
       // Track subscription creation with failed verification email
       await trackEvent({
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    logError('Failed to process subscription', error as Error)
+    logger.error('Failed to process subscription', error as Error)
     
     // Track subscription failure
     await trackEvent({

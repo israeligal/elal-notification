@@ -4,7 +4,7 @@ import { db, subscribers } from '@/lib/db/connection'
 import { sendVerificationEmail } from '@/services/email-notification.service'
 import { generateVerificationToken } from '@/lib/utils/crypto'
 import { subscribeRequestSchema } from '@/types/notification.type'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const { email } = validation.data
 
-    logInfo('Processing resend verification request', { email })
+    logger.info('Processing resend verification request', { email })
 
     // Find subscriber
     const existingSubscriber = await db
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendVerificationEmail({ email, verificationToken })
       
-      logInfo('Verification email resent successfully', { email })
+      logger.info('Verification email resent successfully', { email })
 
       return NextResponse.json({
         success: true,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       })
 
     } catch (emailError) {
-      logError('Failed to resend verification email', emailError as Error, { email })
+      logger.error('Failed to resend verification email', { email, error: emailError })
       
       return NextResponse.json(
         { error: 'Failed to send verification email. Please try again later.' },
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    logError('Failed to process resend verification', error as Error)
+    logger.error('Failed to process resend verification', error as Error)
     
     return NextResponse.json(
       { error: 'Failed to resend verification. Please try again.' },
