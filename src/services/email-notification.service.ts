@@ -62,8 +62,8 @@ async function sendEmailWithRetry(
                        errorMessage?.toLowerCase().includes('429')
 
     if (isRateLimit) {
-      logInfo('Rate limit detected, retrying after 1 seconds', { email: subscriber.email })
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      logInfo('Rate limit detected, retrying after 600ms', { email: subscriber.email, error: errorMessage })
+      await new Promise(resolve => setTimeout(resolve, 600))
       
       try {
         await resend.emails.send({
@@ -78,6 +78,8 @@ async function sendEmailWithRetry(
         return { success: false, error: (retryError as Error).message }
       }
     }
+
+    logError('Error sending email', error as Error, { email: subscriber.email })
 
     // For non-rate-limit errors, don't retry
     await trackEvent({
