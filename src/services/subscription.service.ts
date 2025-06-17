@@ -1,6 +1,6 @@
 import { eq, and, sql } from 'drizzle-orm'
 import { db, subscribers } from '@/lib/db/connection'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import { generateVerificationToken } from '@/lib/utils/crypto'
 import type { Subscriber } from '@/types/notification.type'
 
@@ -13,7 +13,7 @@ export async function createSubscription({
   verificationToken: string 
 }> {
   try {
-    logInfo('Creating new subscription', { email })
+    logger.info('Creating new subscription', { email })
 
     // Check if subscriber already exists
     const existingSubscriber = await db
@@ -42,7 +42,7 @@ export async function createSubscription({
         .where(eq(subscribers.id, subscriber.id))
         .returning()
 
-      logInfo('Reactivated existing subscription', { 
+      logger.info('Reactivated existing subscription', { 
         email, 
         subscriberId: subscriber.id,
         wasAlreadyVerified: wasVerified
@@ -65,14 +65,14 @@ export async function createSubscription({
       })
       .returning()
 
-    logInfo('Created new subscription', { email, subscriberId: newSubscriber[0].id })
+    logger.info('Created new subscription', { email, subscriberId: newSubscriber[0].id })
     return { 
       subscriber: newSubscriber[0] as Subscriber, 
       verificationToken 
     }
 
   } catch (error) {
-    logError('Failed to create subscription', error as Error, { email })
+    logger.error('Failed to create subscription', { email, error: error })
     throw error
   }
 }
@@ -85,7 +85,7 @@ export async function verifySubscription({
   token: string 
 }): Promise<Subscriber> {
   try {
-    logInfo('Verifying subscription', { email })
+    logger.info('Verifying subscription', { email })
 
     // First check if subscriber exists and is already verified
     const existingSubscriber = await db
@@ -102,7 +102,7 @@ export async function verifySubscription({
 
     // If already verified, return success without changing anything
     if (subscriber.verifiedAt) {
-      logInfo('Subscription already verified', { email, subscriberId: subscriber.id })
+      logger.info('Subscription already verified', { email, subscriberId: subscriber.id })
       return subscriber as Subscriber
     }
 
@@ -121,11 +121,11 @@ export async function verifySubscription({
       .where(eq(subscribers.id, subscriber.id))
       .returning()
 
-    logInfo('Subscription verified successfully', { email, subscriberId: subscriber.id })
+    logger.info('Subscription verified successfully', { email, subscriberId: subscriber.id })
     return verifiedSubscriber[0] as Subscriber
 
   } catch (error) {
-    logError('Failed to verify subscription', error as Error, { email })
+    logger.error('Failed to verify subscription', { email, error: error })
     throw error
   }
 }
@@ -138,7 +138,7 @@ export async function removeSubscription({
   token?: string 
 }): Promise<void> {
   try {
-    logInfo('Removing subscription', { email })
+    logger.info('Removing subscription', { email })
 
     const whereCondition = eq(subscribers.email, email)
     
@@ -169,17 +169,17 @@ export async function removeSubscription({
       })
       .where(whereCondition)
 
-    logInfo('Subscription removed successfully', { email })
+    logger.info('Subscription removed successfully', { email })
 
   } catch (error) {
-    logError('Failed to remove subscription', error as Error, { email })
+    logger.error('Failed to remove subscription', { email, error: error })
     throw error
   }
 }
 
 export async function getActiveSubscribers(): Promise<Subscriber[]> {
   try {
-    logInfo('Fetching active subscribers')
+    logger.info('Fetching active subscribers')
 
     const activeSubscribers = await db
       .select()
@@ -193,11 +193,11 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
         )
       )
 
-    logInfo('Fetched active subscribers', { count: activeSubscribers.length })
+    logger.info('Fetched active subscribers', { count: activeSubscribers.length })
     return activeSubscribers as Subscriber[]
 
   } catch (error) {
-    logError('Failed to fetch active subscribers', error as Error)
+    logger.error('Failed to fetch active subscribers', error as Error)
     throw error
   }
 }
@@ -230,7 +230,7 @@ export async function getSubscriptionStatus({
     }
 
   } catch (error) {
-    logError('Failed to get subscription status', error as Error, { email })
+    logger.error('Failed to get subscription status', { email, error: error })
     throw error
   }
 } 

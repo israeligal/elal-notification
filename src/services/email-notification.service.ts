@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 import { render } from '@react-email/render'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import { UpdateNotificationEmail } from '@/components/emails/UpdateNotificationEmail'
 import { VerificationEmail } from '@/components/emails/VerificationEmail'
 import { ConfirmationEmail } from '@/components/emails/ConfirmationEmail'
@@ -62,7 +62,7 @@ async function sendEmailWithRetry(
                        errorMessage?.toLowerCase().includes('429')
 
     if (isRateLimit) {
-      logInfo('Rate limit detected, retrying after 600ms', { email: subscriber.email, error: errorMessage })
+      logger.info('Rate limit detected, retrying after 600ms', { email: subscriber.email, error: errorMessage })
       await new Promise(resolve => setTimeout(resolve, 600))
       
       try {
@@ -74,12 +74,12 @@ async function sendEmailWithRetry(
         })
         return { success: true }
       } catch (retryError) {
-        logError('Retry failed after rate limit', retryError as Error, { email: subscriber.email })
+        logger.error('Retry failed after rate limit', { email: subscriber.email, error: retryError })
         return { success: false, error: (retryError as Error).message }
       }
     }
 
-    logError('Error sending email', error as Error, { email: subscriber.email })
+    logger.error('Error sending email', { email: subscriber.email, error: error })
 
     // For non-rate-limit errors, don't retry
     await trackEvent({
@@ -114,7 +114,7 @@ export async function sendUpdateNotifications({
   }
 
   try {
-    logInfo('Starting bulk email notifications with rate limiting', { 
+    logger.info('Starting bulk email notifications with rate limiting', { 
       updatesCount: updates.length, 
       subscribersCount: subscribers.length,
       estimatedTimeMinutes: Math.ceil(subscribers.length / 2 / 60) // 2 emails per second
@@ -125,7 +125,7 @@ export async function sendUpdateNotifications({
     for (let i = 0; i < subscribers.length; i++) {
       const subscriber = subscribers[i]
       
-      logInfo('Sending email', { 
+      logger.info('Sending email', { 
         email: subscriber.email,
         progress: `${i + 1}/${subscribers.length}`,
         estimatedRemainingSeconds: Math.ceil((subscribers.length - i - 1) * 0.5)
@@ -135,7 +135,7 @@ export async function sendUpdateNotifications({
       
       if (result.success) {
         results.sent++
-        logInfo('Email sent successfully', { 
+        logger.info('Email sent successfully', { 
           email: subscriber.email,
           progress: `${results.sent}/${subscribers.length}`
         })
@@ -143,7 +143,7 @@ export async function sendUpdateNotifications({
         results.failed++
         const errorMessage = `Failed to send to ${subscriber.email}: ${result.error}`
         results.errors.push(errorMessage)
-        logError('Failed to send email after retries', new Error(result.error || 'Unknown error'), { 
+        logger.error('Failed to send email after retries', new Error(result.error || 'Unknown error'), { 
           email: subscriber.email
         })
       }
@@ -155,7 +155,7 @@ export async function sendUpdateNotifications({
       }
     }
 
-    logInfo('Bulk email notifications completed', results)
+    logger.info('Bulk email notifications completed', results)
     return results
 
   } catch (error) {
@@ -167,7 +167,7 @@ export async function sendUpdateNotifications({
         timestamp: new Date().toISOString(),
       }
     })
-    logError('Bulk email notification failed', error as Error)
+    logger.error('Bulk email notification failed', error as Error)
     throw error
   }
 }
@@ -180,7 +180,7 @@ export async function sendVerificationEmail({
   verificationToken: string 
 }): Promise<void> {
   try {
-    logInfo('Sending verification email', { email })
+    logger.info('Sending verification email', { email })
 
     const verificationUrl = `${process.env.APP_URL}/api/subscription/verify?email=${encodeURIComponent(email)}&token=${verificationToken}`
     
@@ -196,10 +196,10 @@ export async function sendVerificationEmail({
       html: emailHtml,
     })
 
-    logInfo('Verification email sent successfully', { email })
+    logger.info('Verification email sent successfully', { email })
 
   } catch (error) {
-    logError('Failed to send verification email', error as Error, { email })
+    logger.error('Failed to send verification email', { email, error: error })
     throw error
   }
 }
@@ -210,7 +210,7 @@ export async function sendConfirmationEmail({
   email: string 
 }): Promise<void> {
   try {
-    logInfo('Sending confirmation email', { email })
+    logger.info('Sending confirmation email', { email })
 
     const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`
     
@@ -226,10 +226,10 @@ export async function sendConfirmationEmail({
       html: emailHtml,
     })
 
-    logInfo('Confirmation email sent successfully', { email })
+    logger.info('Confirmation email sent successfully', { email })
 
   } catch (error) {
-    logError('Failed to send confirmation email', error as Error, { email })
+    logger.error('Failed to send confirmation email', { email, error: error })
     throw error
   }
 }

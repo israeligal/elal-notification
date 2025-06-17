@@ -4,7 +4,7 @@ import { generateObject } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { getBrowser } from "@/lib/puppeteer/browser-manager";
 import type { ScrapedContent } from "@/types/notification.type";
-import { logInfo } from "@/lib/utils/logger";
+import { logger } from "@/lib/utils/logger";
 import posthog from "posthog-js";
 import { trackEvent } from "@/lib/utils/analytics";
 
@@ -199,7 +199,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
     await page.setViewport({ width: 1920, height: 1080 });
     
-    logInfo('Navigating to El Al updates page', { url: ELAL_URL });
+    logger.info('Navigating to El Al updates page', { url: ELAL_URL });
     await trackEvent({
       distinctId: 'system',
       event: 'scrape_elal_updates_with_puppeteer_start',
@@ -213,11 +213,11 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       timeout: 30000 
     });
 
-    logInfo('Waiting for page to load', { url: ELAL_URL });
+    logger.info('Waiting for page to load', { url: ELAL_URL });
     
     await new Promise(resolve => setTimeout(resolve, 10000));
     
-    // logInfo('Getting raw HTML content from page');
+    // logger.info('Getting raw HTML content from page');
     const rawHtml = await page.content();
     await trackEvent({
       distinctId: 'system',
@@ -228,7 +228,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       }
     })
 
-    logInfo('Got raw HTML content from page');
+    logger.info('Got raw HTML content from page');
 
     
     const cleanedHtml = cleanHtml(rawHtml);
@@ -242,7 +242,7 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       }
     })
     // Use AI SDK with Anthropic to extract news points (exact same as Stagehand)
-    // logInfo('Using AI SDK with Anthropic to extract Hebrew news updates');
+    // logger.info('Using AI SDK with Anthropic to extract Hebrew news updates');
 
     posthog.capture('scrape_elal_updates_with_puppeteer_extraction_start');
     const result = await generateObject({
@@ -260,12 +260,12 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       }
     })
 
-    // logInfo('AI extraction completed', { extractedCount: result.object.updates.length });
-    // logInfo('AI extraction result', { result: result.object });
+    // logger.info('AI extraction completed', { extractedCount: result.object.updates.length });
+    // logger.info('AI extraction result', { result: result.object });
 
     // Check if AI actually found meaningful updates
     if (!result.object.hasActualUpdates || result.object.updates.length === 0) {
-      // logInfo('No meaningful updates found by AI extraction', { 
+      // logger.info('No meaningful updates found by AI extraction', { 
       //   hasActualUpdates: result.object.hasActualUpdates,
       //   updatesCount: result.object.updates.length 
       // });
@@ -299,11 +299,11 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
     })
 
 
-    // logInfo('Successfully extracted articles using AI SDK', { count: articles.length });
+    // logger.info('Successfully extracted articles using AI SDK', { count: articles.length });
     return articles;
 
   } catch (error) {
-    logInfo('Error during AI-powered scraping', { error: (error as Error).message });
+    logger.info('Error during AI-powered scraping', { error: (error as Error).message });
     throw error;
   } finally {
     await page.close();
@@ -319,7 +319,7 @@ export async function checkForUpdatesWithPuppeteer({
   
   // If no updates were found by AI extraction, return early with no changes
   if (currentUpdates.length === 0) {
-    logInfo('No updates found during scraping - skipping comparison and notification', { 
+    logger.info('No updates found during scraping - skipping comparison and notification', { 
       currentCount: currentUpdates.length,
       previousCount: previousUpdates.length
     });
@@ -357,7 +357,7 @@ export async function checkForUpdatesWithPuppeteer({
 
   // For first run, just return the updates without AI comparison (exact same logic)
   if (isFirstRun) {
-    logInfo('First run - returning updates without comparison', { 
+    logger.info('First run - returning updates without comparison', { 
       currentCount: currentUpdates.length
     });
 
@@ -383,7 +383,7 @@ export async function checkForUpdatesWithPuppeteer({
   }
 
   // Use AI to compare with previous updates (exact same logic)
-  logInfo('Using AI to compare current updates with previous updates', { 
+  logger.info('Using AI to compare current updates with previous updates', { 
     currentCount: currentUpdates.length,
     previousCount: previousUpdates.length
   });
