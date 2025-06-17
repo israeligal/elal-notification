@@ -143,8 +143,9 @@ export async function sendUpdateNotifications({
         results.failed++
         const errorMessage = `Failed to send to ${subscriber.email}: ${result.error}`
         results.errors.push(errorMessage)
-        logger.error('Failed to send email after retries', new Error(result.error || 'Unknown error'), { 
-          email: subscriber.email
+        logger.error('Failed to send email after retries', {  
+          email: subscriber.email,
+          error: result.error
         })
       }
 
