@@ -1,7 +1,7 @@
 'use server'
 
 import { ContactFormSchema, ContactFormState } from '@/lib/schemas/contact.schema'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
 import {Resend} from "resend";
 
@@ -36,7 +36,7 @@ export async function submitContactForm(
     const { name, email, message, formType } = validation.data
 
     // Log the contact form submission
-    logInfo('Contact form submitted', {
+    logger.info('Contact form submitted', {
       name: name || 'Anonymous',
       email: email || 'No email provided',
       formType,
@@ -74,7 +74,7 @@ export async function submitContactForm(
       message: successMessage,
     }
   } catch (error) {
-    logError('Contact form submission error', error as Error)
+    logger.error('Contact form submission error', error as Error)
     
     // Track contact form submission failure
     await trackEvent({
