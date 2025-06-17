@@ -212,6 +212,8 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
       waitUntil: 'domcontentloaded',
       timeout: 30000 
     });
+
+    logInfo('Waiting for page to load', { url: ELAL_URL });
     
     await new Promise(resolve => setTimeout(resolve, 10000));
     
@@ -225,6 +227,9 @@ export async function scrapeElAlUpdatesWithPuppeteer(): Promise<ScrapedContent[]
         timestamp: new Date().toISOString(),
       }
     })
+
+    logInfo('Got raw HTML content from page');
+
     
     const cleanedHtml = cleanHtml(rawHtml);
 
