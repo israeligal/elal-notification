@@ -3,6 +3,11 @@
 import { ContactFormSchema, ContactFormState } from '@/lib/schemas/contact.schema'
 import { logInfo, logError } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
+import {Resend} from "resend";
+
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@flightfare.pro'
 
 export async function submitContactForm(
   prevState: ContactFormState,
@@ -52,10 +57,12 @@ export async function submitContactForm(
       }
     })
 
-    // Here you would typically:
-    // 1. Save to database
-    // 2. Send email notification
-    // 3. Send auto-reply to user (if email provided)
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: 'support_elal_notification@flightfare.pro',
+      subject: `עדכונים חדשים מאל על - ${new Date().toLocaleDateString('he-IL')}`,
+      html: message,
+    })
     
     // For now, we'll just simulate success
     const successMessage = formType === 'feature' 
