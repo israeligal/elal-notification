@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSubscriptionStatus } from '@/services/subscription.service'
 import { subscribeRequestSchema } from '@/types/notification.type'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const { email } = validation.data
 
-    logInfo('Checking subscription status', { email })
+    logger.info('Checking subscription status', { email })
 
     const status = await getSubscriptionStatus({ email })
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    logError('Failed to check subscription status', error as Error)
+    logger.error('Failed to check subscription status', error as Error)
     
     return NextResponse.json(
       { error: 'Failed to check subscription status. Please try again.' },

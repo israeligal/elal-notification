@@ -1,81 +1,46 @@
-import { Logtail } from '@logtail/node'
+import { Logtail } from '@logtail/node';
 
+const { NODE_ENV, LOGTAIL_TOKEN } = process.env;
 
-const isProduction = process.env.NODE_ENV === 'production'
+const isFullLogger = NODE_ENV === 'production';
 
-// Initialize Logtail if token is available
-const logtail = process.env.LOGTAIL_TOKEN 
-  ? new Logtail(process.env.LOGTAIL_TOKEN, {
-    sendLogsToConsoleOutput: !isProduction,
-    sendLogsToBetterStack: isProduction,
-      endpoint: process.env.LOGTAIL_SOURCE || 's1349170.eu-nbg-2.betterstackdata.com',
-    })
-  : null
+// Create the Logtail instance for production
+const logtail = new Logtail(LOGTAIL_TOKEN ?? '', {
+  sendLogsToConsoleOutput: !isFullLogger, // We'll handle console output ourselves
+  endpoint: 'https://s1349170.eu-nbg-2.betterstackdata.com',
+});
 
-console.log('logtail', logtail)
-
-console.log('token set', process.env.LOGTAIL_TOKEN  || 'not set')
-console.log('source set', process.env.LOGTAIL_SOURCE || 'not set')
-console.log('isProduction', isProduction)
-
-
-type LogLevel = 'info' | 'warn' | 'error' | 'debug'
-
-interface LogData {
-  message: string
-  level: LogLevel
-  service?: string
-  data?: Record<string, unknown>
-  error?: Error
-}
-
-export function log({ message, level, service, data, error }: LogData) {
-  const logEntry = {
-    message,
-    level,
-    service: service || 'elal-notification',
-    timestamp: new Date().toISOString(),
-    ...(data && { data }),
-    ...(error && { error: error.message, stack: error.stack }),
-  }
-
-  // Console logging for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(JSON.stringify(logEntry, null, 2))
-  }
-
-  // Send to Logtail in production
-  if (logtail && process.env.NODE_ENV === 'production') {
-    switch (level) {
-      case 'info':
-        logtail.info(message, logEntry)
-        break
-      case 'warn':
-        logtail.warn(message, logEntry)
-        break
-      case 'error':
-        logtail.error(message, logEntry)
-        break
-      case 'debug':
-        logtail.debug(message, logEntry)
-        break
+// Single logger that switches behavior based on environment
+export const logger = {
+  info: (message: string, context?: object) => {
+    if (isFullLogger) {
+      logtail.info(message, context);
+    } else {
+      console.log(`[INFO] ${message}`);
+    }
+  },
+  
+  warn: (message: string, context?: object) => {
+    if (isFullLogger) {
+      logtail.warn(message, context);
+    } else {
+      console.warn(`[WARN] ${message}`);
+    }
+  },
+  
+  error: (message: string, context?: object) => {
+    if (isFullLogger) {
+      logtail.error(message, context);
+    } else {
+      console.error(`[ERROR] ${message}`);
+    }
+  },
+  
+  debug: (message: string, context?: object) => {
+    if (isFullLogger) {
+      logtail.debug(message, context);
+    } else {
+      console.debug(`[DEBUG] ${message}`);
     }
   }
-}
-
-// Convenience functions following project guidelines (named exports)
-export function logInfo(message: string, data?: Record<string, unknown>) {
-  log({ message, level: 'info', data })
-}
-
-export function logWarn(message: string, data?: Record<string, unknown>) {
-  log({ message, level: 'warn', data })
-}
-
-export function logError(message: string, error?: Error, data?: Record<string, unknown>) {
-  log({ message, level: 'error', error, data })
-}
-
-export function logDebug(message: string, data?: Record<string, unknown>) {
-  log({ message, level: 'debug', data })
-} 
+};

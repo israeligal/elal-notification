@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { removeSubscription } from '@/services/subscription.service'
 import { unsubscribeRequestSchema } from '@/types/notification.type'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
 
 export async function POST(request: NextRequest) {
@@ -19,11 +19,11 @@ export async function POST(request: NextRequest) {
 
     const { email, token } = validation.data
 
-    logInfo('Processing unsubscribe request', { email })
+    logger.info('Processing unsubscribe request', { email })
 
     await removeSubscription({ email, token })
 
-    logInfo('Unsubscribe successful', { email })
+    logger.info('Unsubscribe successful', { email })
 
     // Track successful unsubscribe
     await trackEvent({
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    logError('Unsubscribe failed', error as Error)
+    logger.error('Unsubscribe failed', error as Error)
     
     // Track unsubscribe failure
     await trackEvent({
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(unsubscribePageUrl)
 
   } catch (error) {
-    logError('Unsubscribe GET request failed', error as Error)
+    logger.error('Unsubscribe GET request failed', error as Error)
     return NextResponse.redirect(new URL('/unsubscribe-error', request.url))
   }
 } 

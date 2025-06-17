@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifySubscription } from '@/services/subscription.service'
 import { sendConfirmationEmail } from '@/services/email-notification.service'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
 
 export async function GET(request: NextRequest) {
@@ -17,11 +17,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    logInfo('Processing email verification', { email })
+    logger.info('Processing email verification', { email })
 
     await verifySubscription({ email, token })
 
-    logInfo('Email verification successful', { email })
+    logger.info('Email verification successful', { email })
 
     // Track successful email verification
     await trackEvent({
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Send confirmation email after successful verification
     try {
       await sendConfirmationEmail({ email })
-      logInfo('Confirmation email sent after verification', { email })
+      logger.info('Confirmation email sent after verification', { email })
 
       // Track confirmation email sent
       await trackEvent({
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       })
     } catch (emailError) {
       // Log error but don't fail the verification process
-      logError('Failed to send confirmation email after verification', emailError as Error, { email })
+      logger.error('Failed to send confirmation email after verification', { email, error: emailError })
       
       // Track confirmation email failure
       await trackEvent({
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/verification-success', request.url))
 
   } catch (error) {
-    logError('Email verification failed', error as Error)
+    logger.error('Email verification failed', error as Error)
     
     // Track email verification failure
     await trackEvent({

@@ -2,7 +2,7 @@ import { desc, count, eq } from 'drizzle-orm'
 import { db, updateChecks, updateContent, notificationLogs } from '@/lib/db/connection'
 import { getActiveSubscribers } from '@/services/subscription.service'
 import { sendUpdateNotifications } from '@/services/email-notification.service'
-import { logInfo, logError } from '@/lib/utils/logger'
+import { logger } from '@/lib/utils/logger'
 import type { ScrapedContent } from '@/types/notification.type'
 import { closeBrowser } from '@/lib/puppeteer/browser-manager'
 import {trackEvent} from "@/lib/utils/analytics";
@@ -24,7 +24,7 @@ async function getPreviousUpdates({ lastCheckId }: { lastCheckId?: string }): Pr
       url: update.url || undefined
     }))
   } catch (error) {
-    logError('Failed to get previous updates', error as Error)
+    logger.error('Failed to get previous updates', error as Error)
     return []
   }
 }
@@ -37,7 +37,7 @@ export async function performMonitoringCheck(): Promise<{
   error?: string
 }> {
   try {
-    logInfo('Starting monitoring check')
+    logger.info('Starting monitoring check')
 
     // Get the last check's ID for retrieving previous updates
     // where has_changed = true
@@ -52,7 +52,7 @@ export async function performMonitoringCheck(): Promise<{
 
     // Get previous updates instead of just hash
     const previousUpdates = await getPreviousUpdates({ lastCheckId: lastCheck[0]?.id })
-    logInfo('DEBUG: Retrieved previous updates', { 
+    logger.info('DEBUG: Retrieved previous updates', { 
       previousCount: previousUpdates.length,
       lastCheckId: lastCheck[0]?.id,
       previousTitles: previousUpdates.map(u => u.title)
@@ -100,7 +100,7 @@ export async function performMonitoringCheck(): Promise<{
 
     // Store update content if there are changes
     if (hasChanged && updates.length > 0) {
-      logInfo('Updates detected, storing content', { 
+      logger.info('Updates detected, storing content', { 
         updateCount: updates.length,
       })
 
@@ -123,7 +123,7 @@ export async function performMonitoringCheck(): Promise<{
         const activeSubscribers = await getActiveSubscribers()
         
         if (activeSubscribers.length > 0) {
-          logInfo('Sending notifications to subscribers', { 
+          logger.info('Sending notifications to subscribers', { 
             subscriberCount: activeSubscribers.length 
           })
 
@@ -141,7 +141,7 @@ export async function performMonitoringCheck(): Promise<{
             errorMessage: failed > 0 ? `${failed} out of ${activeSubscribers.length} emails failed to send` : null
           })
 
-          logInfo('Monitoring check completed with notifications', {
+          logger.info('Monitoring check completed with notifications', {
             updateCount: updates.length,
             notificationsSent: sent,
             notificationsFailed: failed,
@@ -154,7 +154,7 @@ export async function performMonitoringCheck(): Promise<{
             notificationsSent: sent
           }
         } else {
-          logInfo('No active subscribers to notify')
+          logger.info('No active subscribers to notify')
           
           return {
             success: true,
@@ -165,7 +165,7 @@ export async function performMonitoringCheck(): Promise<{
         }
       } else {
         // Updates detected but significance not major - no notifications sent
-        logInfo('Updates detected but significance not major - no notifications sent', { 
+        logger.info('Updates detected but significance not major - no notifications sent', { 
           significance, 
           hasChanged,
           updateCount: updates.length
@@ -179,7 +179,7 @@ export async function performMonitoringCheck(): Promise<{
         }
       }
     } else {
-      logInfo('No updates detected')
+      logger.info('No updates detected')
       
       return {
         success: true,
@@ -189,7 +189,7 @@ export async function performMonitoringCheck(): Promise<{
     }
 
   } catch (error) {
-    logError('Monitoring check failed', error as Error)
+    logger.error('Monitoring check failed', error as Error)
     
     return {
       success: false,
@@ -199,7 +199,7 @@ export async function performMonitoringCheck(): Promise<{
     }
   } finally {
     await closeBrowser()
-    logInfo('Browser closed after monitoring check')
+    logger.info('Browser closed after monitoring check')
   }
 }
 
@@ -229,7 +229,7 @@ export async function getMonitoringStatus(): Promise<{
     }
 
   } catch (error) {
-    logError('Failed to get monitoring status', error as Error)
+    logger.error('Failed to get monitoring status', error as Error)
     throw error
   }
 } 
