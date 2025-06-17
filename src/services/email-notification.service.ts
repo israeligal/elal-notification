@@ -18,6 +18,84 @@ if (!process.env.APP_URL) {
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@flightfare.pro'
 
+async function sendEmailWithRetry(
+  subscriber: Subscriber,
+  updates: ScrapedContent[]
+): Promise<{ success: boolean; error?: string }> {
+  const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`
+  
+  const emailHtml = await render(UpdateNotificationEmail({
+    updates,
+    unsubscribeUrl,
+    timestamp: new Date()
+  }))
+
+  try {
+    if (process.env.SEND_EMAIL_ENABLED) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: subscriber.email,
+        subject: `עדכונים חדשים מאל על - ${new Date().toLocaleDateString('he-IL')}`,
+        html: emailHtml,
+      })
+      if (error) {
+        throw new Error(error.message)
+      }
+    } else {
+      await trackEvent({
+        distinctId: 'system',
+        event: 'scrape_elal_updates_with_puppeteer_html',
+        properties: {
+          disabled: true,
+          timestamp: new Date().toISOString(),
+        }
+      })
+    }
+
+    return { success: true }
+  } catch (error) {
+    const errorMessage = (error as Error).message
+    
+    // Only retry if it's a rate limit error
+    const isRateLimit = errorMessage?.toLowerCase().includes('rate') || 
+                       errorMessage?.toLowerCase().includes('limit') ||
+                       errorMessage?.toLowerCase().includes('429')
+
+    if (isRateLimit) {
+      logInfo('Rate limit detected, retrying after 600ms', { email: subscriber.email, error: errorMessage })
+      await new Promise(resolve => setTimeout(resolve, 600))
+      
+      try {
+        await resend.emails.send({
+          from: FROM_EMAIL,
+          to: subscriber.email,
+          subject: `עדכונים חדשים מאל על - ${new Date().toLocaleDateString('he-IL')}`,
+          html: emailHtml,
+        })
+        return { success: true }
+      } catch (retryError) {
+        logError('Retry failed after rate limit', retryError as Error, { email: subscriber.email })
+        return { success: false, error: (retryError as Error).message }
+      }
+    }
+
+    logError('Error sending email', error as Error, { email: subscriber.email })
+
+    // For non-rate-limit errors, don't retry
+    await trackEvent({
+      distinctId: 'system',
+      event: 'error_scrape_elal_updates_with_puppeteer_html',
+      properties: {
+        error: error,
+        email: subscriber.email,
+        timestamp: new Date().toISOString(),
+      }
+    })
+    
+    return { success: false, error: errorMessage }
+  }
+}
+
 export async function sendUpdateNotifications({ 
   updates, 
   subscribers 
@@ -36,65 +114,44 @@ export async function sendUpdateNotifications({
   }
 
   try {
-    logInfo('Starting bulk email notifications', { 
+    logInfo('Starting bulk email notifications with rate limiting', { 
       updatesCount: updates.length, 
-      subscribersCount: subscribers.length 
+      subscribersCount: subscribers.length,
+      estimatedTimeMinutes: Math.ceil(subscribers.length / 2 / 60) // 2 emails per second
     })
 
-    // Send emails in batches to avoid rate limiting
-    const batchSize = 50
-    const batches = []
-    
-    for (let i = 0; i < subscribers.length; i += batchSize) {
-      batches.push(subscribers.slice(i, i + batchSize))
-    }
-
-    for (const batch of batches) {
-      const emailPromises = batch.map(async (subscriber) => {
-        try {
-          // For verified subscribers (who receive notifications), no token needed for unsubscribe
-          const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`
-          
-          const emailHtml = await render(UpdateNotificationEmail({
-            updates,
-            unsubscribeUrl,
-            timestamp: new Date()
-          }))
-
-          if (process.env.SEND_EMAIL_ENABLED) {
-              await resend.emails.send({
-                from: FROM_EMAIL,
-                to: subscriber.email,
-                subject: `עדכונים חדשים מאל על - ${new Date().toLocaleDateString('he-IL')}`,
-                html: emailHtml,
-              })
-          } else {
-            await trackEvent({
-              distinctId: 'system',
-              event: 'scrape_elal_updates_with_puppeteer_html',
-              properties: {
-                disabled: true,
-                timestamp: new Date().toISOString(),
-              }
-            })
-          }
-
-          results.sent++
-          logInfo('Email sent successfully', { email: subscriber.email })
-
-        } catch (error) {
-          results.failed++
-          const errorMessage = `Failed to send to ${subscriber.email}: ${(error as Error).message}`
-          results.errors.push(errorMessage)
-          logError('Failed to send email', error as Error, { email: subscriber.email })
-        }
+    // Process emails one by one to respect 2 emails/second crate limit
+    // This gives us precise control over timing
+    for (let i = 0; i < subscribers.length; i++) {
+      const subscriber = subscribers[i]
+      
+      logInfo('Sending email', { 
+        email: subscriber.email,
+        progress: `${i + 1}/${subscribers.length}`,
+        estimatedRemainingSeconds: Math.ceil((subscribers.length - i - 1) * 0.5)
       })
 
-      await Promise.allSettled(emailPromises)
+      const result = await sendEmailWithRetry(subscriber, updates)
       
-      // Small delay between batches
-      if (batches.indexOf(batch) < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+      if (result.success) {
+        results.sent++
+        logInfo('Email sent successfully', { 
+          email: subscriber.email,
+          progress: `${results.sent}/${subscribers.length}`
+        })
+      } else {
+        results.failed++
+        const errorMessage = `Failed to send to ${subscriber.email}: ${result.error}`
+        results.errors.push(errorMessage)
+        logError('Failed to send email after retries', new Error(result.error || 'Unknown error'), { 
+          email: subscriber.email
+        })
+      }
+
+      // Rate limiting: Wait 500ms between emails (2 emails per second)
+      // Only add delay if not the last email
+      if (i < subscribers.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500))
       }
     }
 
@@ -102,6 +159,14 @@ export async function sendUpdateNotifications({
     return results
 
   } catch (error) {
+    await trackEvent({
+      distinctId: 'system',
+      event: 'error_scrape_elal_updates_with_puppeteer_html',
+      properties: {
+        error: error,
+        timestamp: new Date().toISOString(),
+      }
+    })
     logError('Bulk email notification failed', error as Error)
     throw error
   }

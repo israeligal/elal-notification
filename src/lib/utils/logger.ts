@@ -1,8 +1,14 @@
 import { Logtail } from '@logtail/node'
 
+
+const isProduction = process.env.NODE_ENV === 'production'
+
 // Initialize Logtail if token is available
 const logtail = process.env.LOGTAIL_TOKEN 
-  ? new Logtail(process.env.LOGTAIL_TOKEN)
+  ? new Logtail(process.env.LOGTAIL_TOKEN, {
+    sendLogsToConsoleOutput: !isProduction,
+      endpoint: process.env.LOGTAIL_SOURCE || 's1349170.eu-nbg-2.betterstackdata.com',
+    })
   : null
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug'
