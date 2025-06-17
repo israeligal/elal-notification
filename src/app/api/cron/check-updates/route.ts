@@ -3,6 +3,9 @@ import { performMonitoringCheck } from '@/services/monitoring.service'
 import { logger } from '@/lib/utils/logger'
 import { trackEvent } from '@/lib/utils/analytics'
 
+
+export const maxDuration = 300;
+
 export async function GET(request: NextRequest) {
   try {
     // Verify cron secret to prevent unauthorized access
