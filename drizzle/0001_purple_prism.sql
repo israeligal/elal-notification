@@ -1,0 +1,1 @@
+ALTER TABLE "update_checks" ADD COLUMN "last_update" text;

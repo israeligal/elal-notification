@@ -18,6 +18,7 @@ export const updateChecks = pgTable('update_checks', {
   contentHash: text('content_hash').notNull(),
   hasChanged: boolean('has_changed').notNull().default(false),
   changeDetails: text('change_details'),
+  lastUpdate: text('last_update'), // Website's "Last update:" timestamp
 })
 
 // Update content table - stores actual content for emails

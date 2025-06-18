@@ -29,6 +29,21 @@ async function getPreviousUpdates({ lastCheckId }: { lastCheckId?: string }): Pr
   }
 }
 
+async function getPreviousLastUpdate(): Promise<string | undefined> {
+  try {
+    const lastCheck = await db
+      .select({ lastUpdate: updateChecks.lastUpdate })
+      .from(updateChecks)
+      .orderBy(desc(updateChecks.checkTimestamp))
+      .limit(1)
+    
+    return lastCheck[0]?.lastUpdate || undefined
+  } catch (error) {
+    logger.error('Failed to get previous last update', error as Error)
+    return undefined
+  }
+}
+
 export async function performMonitoringCheck(): Promise<{
   success: boolean
   hasUpdates: boolean
@@ -52,15 +67,19 @@ export async function performMonitoringCheck(): Promise<{
 
     // Get previous updates instead of just hash
     const previousUpdates = await getPreviousUpdates({ lastCheckId: lastCheck[0]?.id })
-    logger.info('DEBUG: Retrieved previous updates', { 
+    const previousLastUpdate = await getPreviousLastUpdate()
+    
+    logger.info('DEBUG: Retrieved previous data', { 
       previousCount: previousUpdates.length,
       lastCheckId: lastCheck[0]?.id,
-      previousTitles: previousUpdates.map(u => u.title)
+      previousTitles: previousUpdates.map(u => u.title),
+      previousLastUpdate
     })
 
     // Check for updates using scraper factory (with feature flags)
-    const { hasChanged, contentHash, updates, changeDetails, significance } = await checkForUpdatesWithPuppeteer({ 
-      previousUpdates 
+    const { hasChanged, contentHash, updates, changeDetails, significance, lastUpdate } = await checkForUpdatesWithPuppeteer({ 
+      previousUpdates,
+      previousLastUpdate
     })
     
     if (updates.length === 0) {
@@ -72,6 +91,8 @@ export async function performMonitoringCheck(): Promise<{
           changeDetails,
           significance,
           previousUpdates,
+          lastUpdate,
+          previousLastUpdate,
           timestamp: new Date().toISOString(),
         }
       })
@@ -89,7 +110,8 @@ export async function performMonitoringCheck(): Promise<{
       .values({
         contentHash,
         hasChanged,
-        changeDetails
+        changeDetails,
+        lastUpdate
       })
       .returning()
 
@@ -189,7 +211,7 @@ export async function performMonitoringCheck(): Promise<{
     }
 
   } catch (error) {
-    logger.error('Monitoring check failed', error as Error)
+    logger.error('Monitoring check failed', { error: error })
     
     return {
       success: false,
