@@ -42,14 +42,7 @@ async function sendEmailWithRetry(
         throw new Error(error.message)
       }
     } else {
-      await trackEvent({
-        distinctId: 'system',
-        event: 'scrape_elal_updates_with_puppeteer_html',
-        properties: {
-          disabled: true,
-          timestamp: new Date().toISOString(),
-        }
-      })
+      logger.info('Email sending disabled', { email: subscriber.email })
     }
 
     return { success: true }

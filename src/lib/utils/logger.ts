@@ -16,7 +16,7 @@ export const logger = {
     if (isFullLogger) {
       logtail.info(message, context);
     } else {
-      console.log(`[INFO] ${message}`);
+      console.log(`[INFO] ${message}, ${JSON.stringify(context)}`);
     }
   },
   
@@ -32,7 +32,7 @@ export const logger = {
     if (isFullLogger) {
       logtail.error(message, context);
     } else {
-      console.error(`[ERROR] ${message}`);
+      console.error(`[ERROR] ${message}, ${JSON.stringify(context)}`);
     }
   },
   
