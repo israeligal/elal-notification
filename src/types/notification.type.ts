@@ -77,4 +77,24 @@ export const emailTemplateDataSchema = z.object({
   unsubscribeUrl: z.string(),
   timestamp: z.date(),
 })
-export type EmailTemplateData = z.infer<typeof emailTemplateDataSchema> 
+export type EmailTemplateData = z.infer<typeof emailTemplateDataSchema>
+
+// Update check result - return type for checkForUpdatesWithPuppeteer
+export const updateCheckResultSchema = z.object({
+  hasChanged: z.boolean(),
+  contentHash: z.string(),
+  updates: z.array(scrapedContentSchema),
+  changeDetails: z.string().optional(),
+  significance: z.enum(['major', 'minor', 'none']),
+  newUpdates: z.array(z.string()),
+  modifiedUpdates: z.array(z.string()),
+  lastUpdate: z.string().optional(),
+})
+export type UpdateCheckResult = z.infer<typeof updateCheckResultSchema>
+
+// Scraping result - return type for scrapeElAlUpdatesWithPuppeteer
+export const scrapingResultSchema = z.object({
+  updates: z.array(scrapedContentSchema),
+  lastUpdate: z.string().optional(),
+})
+export type ScrapingResult = z.infer<typeof scrapingResultSchema> 
