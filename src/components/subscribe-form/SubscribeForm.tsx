@@ -132,8 +132,8 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
           <p className="text-gray-600 text-lg leading-relaxed max-w-md mx-auto mb-4">
             קבל התראות מיידיות כשהאתר מתעדכן
           </p>
-          <p className="text-blue-600 text-sm font-medium mb-6">
-            שירות חינמי לציבור כדי לעזור לכם לחזור הביתה בבטחה
+          <p className="text-indigo-600 text-sm font-medium mb-6">
+            שירות חינמי כדי לעזור לכם לחזור הביתה בבטחה
           </p>
           
           {/* Link to multi-airline service */}
