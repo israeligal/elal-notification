@@ -129,9 +129,32 @@ export function SubscribeForm({ onSuccess, onError }: SubscribeFormProps) {
           <h3 className="text-3xl font-light text-gray-900 mb-3">
             עדכוני אל על
           </h3>
-          <p className="text-gray-600 text-lg leading-relaxed max-w-md mx-auto">
+          <p className="text-gray-600 text-lg leading-relaxed max-w-md mx-auto mb-4">
             קבל התראות מיידיות כשהאתר מתעדכן
           </p>
+          <p className="text-indigo-600 text-sm font-medium mb-6">
+            שירות חינמי כדי לעזור לכם לחזור הביתה בבטחה
+          </p>
+          
+          {/* Link to multi-airline service */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-6 border border-blue-100">
+            <div className="text-center">
+              <p className="text-gray-700 text-sm mb-2">
+                מחפשים עדכונים מחברות תעופה נוספות?
+              </p>
+              <a 
+                href="https://hina-ani-ba.vercel.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
+              >
+                <span>קבל עדכונים מארקיע, ישראייר, מנו קרוז ואל על</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
         </div>
         
         <div className="px-8 pb-8">
