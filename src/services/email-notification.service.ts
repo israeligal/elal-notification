@@ -16,7 +16,7 @@ if (!process.env.APP_URL) {
 }
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@flightfare.pro'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'עידכוני אל על <notifications@flightfare.pro>'
 
 async function sendEmailWithRetry(
   subscriber: Subscriber,
